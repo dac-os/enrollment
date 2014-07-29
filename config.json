@@ -1,5 +1,5 @@
 {
-  "MONGOHQ_URL"    : "mongodb://localhost/dacos-history",
+  "MONGOHQ_URL"    : "mongodb://localhost/dacos-enrollment",
   "PAGE_SIZE"      : 20,
   "PORT"           : 8082,
   "HISTORY_URI"    : "http://localhost:8081",
