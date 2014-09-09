@@ -17,7 +17,7 @@ auth.configUri(nconf.get('AUTH_URI'));
 app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({'extended' : true}));
-//app.use(auth.session());
+app.use(auth.session());
 app.use(function (request, response, next) {
   'use strict';
 
@@ -32,7 +32,8 @@ app.use(function (request, response, next) {
   response.header('Access-Control-Allow-Headers', request.get('Access-Control-Request-Headers'));
   next();
 });
-/*app.use(function handleErrors(error, request, response, next) {
+app.use(require('./controllers/enrollment'));
+app.use(function handleErrors(error, request, response, next) {
   'use strict';
 
   var errors, prop;
@@ -53,7 +54,7 @@ app.use(function (request, response, next) {
   console.error(error);
   response.status(500).end();
   return process.exit();
-});*/
+});
 
 app.get('/', function pingSuccess(request, response) {
   'use strict';
