@@ -21,9 +21,9 @@ schema = new Schema({
     'required' : true
   },
   'status'     : {
-    'type'     : String,
-    'enum'     : [ 'new', 'approved', 'rejected' ],
-    'default'  : 'new'
+    'type'    : String,
+    'enum'    : [ 'new', 'approved', 'rejected' ],
+    'default' : 'new'
   },
   'comment'    : {
     'type' : String
