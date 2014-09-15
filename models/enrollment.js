@@ -20,17 +20,9 @@ schema = new Schema({
     'required' : true
   },
   'status'             : {
-    'type'     : String,
-    'enum'     : [ 'new', 'processed' ],
-    'default'  : 'new'
-  },
-  'drop'               : {
-    'date'          : {
-      'type' : Date
-    },
-    'justification' : {
-      'type' : String
-    }
+    'type'    : String,
+    'enum'    : [ 'new', 'processed' ],
+    'default' : 'new'
   },
   'creditRaiseRequest' : {
     'credits'       : {
@@ -103,7 +95,7 @@ schema.pre('save', function (next) {
   next();
 });
 
-schema.pre('save', function (next) {
+schema.pre('remove', function (next) {
   'use strict';
   /*@TODO se ainda é possivel realizar trancamento*/
   next();

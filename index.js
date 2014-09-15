@@ -33,6 +33,7 @@ app.use(function (request, response, next) {
   next();
 });
 app.use(require('./controllers/enrollment'));
+app.use(require('./controllers/requirement'));
 app.use(function handleErrors(error, request, response, next) {
   'use strict';
 
