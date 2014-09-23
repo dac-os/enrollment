@@ -1,4 +1,4 @@
-var express, mongoose, nconf, bodyParser, auth,
+var express, mongoose, nconf, bodyParser, auth, courses, calendar, history,
 app;
 
 express = require('express');
@@ -6,6 +6,9 @@ mongoose = require('mongoose');
 nconf = require('nconf');
 bodyParser = require('body-parser');
 auth = require('dacos-auth-driver');
+courses = require('dacos-courses-driver');
+calendar = require('dacos-calendar-driver');
+history = require('dacos-history-driver');
 
 nconf.argv();
 nconf.env();
@@ -13,6 +16,9 @@ nconf.defaults(require('./config'));
 
 mongoose.connect(nconf.get('MONGOHQ_URL'));
 auth.configUri(nconf.get('AUTH_URI'));
+courses.configUri(nconf.get('COURSES_URI'));
+calendar.configUri(nconf.get('CALENDAR_URI'));
+history.configUri(nconf.get('HISTORY_URI'));
 
 app = express();
 app.use(bodyParser.json());
@@ -53,8 +59,9 @@ app.use(function handleErrors(error, request, response, next) {
     }
   }
   console.error(error);
-  response.status(500).end();
-  return process.exit();
+  return response.status(500).end();
+  /*@TODO precisa mesmo desse process.exit() ?*/
+  //return process.exit();
 });
 
 app.get('/', function pingSuccess(request, response) {

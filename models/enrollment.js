@@ -1,9 +1,12 @@
-var VError, mongoose, jsonSelect, nconf, Schema, schema;
+var VError, mongoose, jsonSelect, nconf, courses, calendar, history, Schema, schema;
 
 VError = require('verror');
 mongoose = require('mongoose');
 jsonSelect = require('mongoose-json-select');
 nconf = require('nconf');
+courses = require('dacos-courses-driver');
+calendar = require('dacos-calendar-driver');
+history = require('dacos-history-driver');
 Schema = mongoose.Schema;
 
 schema = new Schema({
@@ -85,19 +88,19 @@ schema.pre('save', function setEnrollmentUpdatedAt(next) {
 
 schema.pre('save', function (next) {
   'use strict';
-  /*@TODO Verifica se uma solicitação de aumento de limite de créditos deve ser aberta*/
+  /*@TODO verificar se uma solicitação de aumento de limite de créditos deve ser aberta*/
   next();
 });
 
 schema.pre('save', function (next) {
   'use strict';
-  /*@TODO se ainda é possivel realizar matricula*/
+  /*@TODO verificar se ainda é possivel realizar matricula*/
   next();
 });
 
 schema.pre('remove', function (next) {
   'use strict';
-  /*@TODO se ainda é possivel realizar trancamento*/
+  /*@TODO verificar se ainda é possivel realizar trancamento*/
   next();
 });
 
