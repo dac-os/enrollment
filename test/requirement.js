@@ -1,39 +1,11 @@
 /*globals describe, before, beforeEach, it, after*/
 require('should');
-var supertest, nock, nconf, app, Requirement, Enrollment;
+var supertest, app, Requirement, Enrollment;
 
 supertest = require('supertest');
 app = require('../index.js');
-nock = require('nock');
-nconf = require('nconf');
 Requirement = require('../models/requirement');
 Enrollment = require('../models/enrollment');
-
-nock(nconf.get('AUTH_URI'), {
-  'reqheaders' : {'csrf-token' : 'adminToken'}
-}).get('/users/me').times(Infinity).reply(200, {
-  'academicRegistry' : '111111',
-  'profile'          : {
-    'name'        : 'admin',
-    'slug'        : 'admin',
-    'permissions' : ['changeRequirement', 'changeEnrollment']
-  }
-});
-
-nock(nconf.get('AUTH_URI'), {
-  'reqheaders' : {'csrf-token' : 'userToken'}
-}).get('/users/me').times(Infinity).reply(200, {
-  'academicRegistry' : '111112',
-  'profile'          : {
-    'name'        : 'user',
-    'slug'        : 'user',
-    'permissions' : []
-  }
-});
-
-nock(nconf.get('AUTH_URI'), {
-  'reqheaders' : {'csrf-token' : 'undefined'}
-}).get('/users/me').times(Infinity).reply(404, {});
 
 describe('requirement controller', function () {
   'use strict';
@@ -110,6 +82,17 @@ describe('requirement controller', function () {
         response.body.should.have.property('discipline').be.equal('required');
         response.body.should.have.property('offering').be.equal('required');
       });
+      request.end(done);
+    });
+
+    it('should raise error when offering not found', function (done) {
+      var request;
+      request = supertest(app);
+      request = request.post('/users/111111/enrollments/2014-1/requirements');
+      request.set('csrf-token', 'adminToken');
+      request.send({'discipline' : 'MC202'});
+      request.send({'offering' : '2014-1-F'});
+      request.expect(500);
       request.end(done);
     });
 

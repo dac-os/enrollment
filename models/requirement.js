@@ -1,8 +1,9 @@
-var VError, mongoose, jsonSelect, nconf, Schema, schema;
+var VError, mongoose, jsonSelect, nconf, courses, Schema, schema;
 
 VError = require('verror');
 mongoose = require('mongoose');
 jsonSelect = require('mongoose-json-select');
+courses = require('dacos-courses-driver');
 nconf = require('nconf');
 Schema = mongoose.Schema;
 
@@ -75,14 +76,23 @@ schema.pre('save', function setRequirementUpdatedAt(next) {
 
 schema.pre('save', function (next) {
   'use strict';
-  /*@TODO calcular a priridade*/
+  /*@TODO Calcular a prioridade*/
   next();
 });
 
 schema.pre('save', function (next) {
   'use strict';
   /*@TODO verificar se disciplina e oferecimento existem*/
-  next();
+
+  var discipline;
+  discipline = this.discipline;
+  courses.offering(this.discipline, this.offering, function disciplineOffering(error, offering) {
+    if (!offering) {
+      error = new VError(error, 'discipline offering not found');
+      return next(error);
+    }
+    next();
+  });
 });
 
 schema.pre('save', function (next) {
