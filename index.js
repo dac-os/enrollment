@@ -52,16 +52,15 @@ app.use(function handleErrors(error, request, response, next) {
       errors = {};
       for (prop in error.cause().errors) {
         if (error.cause().errors.hasOwnProperty(prop)) {
-          errors[prop] = error.cause().errors[prop].type;
+          errors[prop] = error.cause().errors[prop].type === 'user defined' ? error.cause().errors[prop].message : error.cause().errors[prop].type;
         }
       }
       return response.status(400).send(errors);
     }
   }
   console.error(error);
-  return response.status(500).end();
-  /*@TODO precisa mesmo desse process.exit() ?*/
-  //return process.exit();
+  response.status(500).end();
+  return process.exit();
 });
 
 app.get('/', function pingSuccess(request, response) {

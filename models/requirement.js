@@ -80,20 +80,13 @@ schema.pre('save', function (next) {
   next();
 });
 
-schema.pre('save', function (next) {
+schema.path('offering').validate(function validateIfDisciplineOfferingExists(value, next) {
   'use strict';
-  /*@TODO verificar se disciplina e oferecimento existem*/
 
-  var discipline;
-  discipline = this.discipline;
-  courses.offering(this.discipline, this.offering, function disciplineOffering(error, offering) {
-    if (!offering) {
-      error = new VError(error, 'discipline offering not found');
-      return next(error);
-    }
-    next();
+  courses.offering(this.discipline, this.offering, function foundDisciplineOffering(error, offering) {
+    next(!error && !!offering);
   });
-});
+}, 'discipline offering not found');
 
 schema.pre('save', function (next) {
   'use strict';

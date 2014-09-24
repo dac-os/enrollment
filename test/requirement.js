@@ -92,7 +92,10 @@ describe('requirement controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'discipline' : 'MC202'});
       request.send({'offering' : '2014-1-F'});
-      request.expect(500);
+      request.expect(400);
+      request.expect(function (response) {
+        response.body.should.have.property('offering').be.equal('discipline offering not found');
+      });
       request.end(done);
     });
 
