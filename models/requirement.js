@@ -1,9 +1,10 @@
-var VError, mongoose, jsonSelect, nconf, courses, Schema, schema;
+var VError, mongoose, jsonSelect, nconf, courses, history, Schema, schema;
 
 VError = require('verror');
 mongoose = require('mongoose');
 jsonSelect = require('mongoose-json-select');
 courses = require('dacos-courses-driver');
+history = require('dacos-history-driver');
 nconf = require('nconf');
 Schema = mongoose.Schema;
 
@@ -88,11 +89,45 @@ schema.path('offering').validate(function validateIfDisciplineOfferingExists(val
   });
 }, 'discipline offering not found');
 
-schema.pre('save', function (next) {
+schema.path('discipline').validate(function validateDisciplineRequirement(value, next) {
   'use strict';
-  /*@TODO detectar se pré requisitos são preenchidos*/
-  next();
-});
+
+  courses.discipline(this.discipline, function (error, discipline) {
+    if (error) {
+      error = new VError(error, 'Error when trying to get the discipline');
+      return next(error);
+    }
+
+    if (!discipline) {
+      return next(false);
+    }
+
+    this.populate('enrollment');
+    this.populate(function () {
+      var user = this.enrollment.user;
+      history.histories(user, function (error, histories) {
+        if (error) {
+          error = new VError(error, 'Error when trying to get the histories');
+          return next(error);
+        }
+
+        if (!histories) {
+          return next(false);
+        }
+
+        histories.forEach(function (userHistory) {
+          discipline.requirements.forEach(function (disciplineRequirement) {
+            history.discipline(user, userHistory.year, disciplineRequirement.code, function (error, disciplineHistory) {
+              next(!error && !!disciplineHistory &&
+              [1, 2, 3, 4, 7, 10, 11, 12, 13, 14, 15, 16, 20].lastIndexOf(disciplineHistory.status) > -1);
+            }.bind(this));
+          }.bind(this));
+        }.bind(this));
+      }.bind(this));
+    }.bind(this));
+  }.bind(this));
+}, 'discipline requirement not fulfilled');
+
 
 schema.pre('save', function (next) {
   'use strict';

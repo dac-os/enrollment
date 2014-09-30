@@ -33,6 +33,23 @@ nock(nconf.get('AUTH_URI'), {
   'reqheaders' : {'csrf-token' : 'undefined'}
 }).get('/users/me').times(Infinity).reply(404, {});
 
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC302').times(Infinity).reply(200, {
+  code: 'MC302',
+  name: 'Estrutura de Dados',
+  credits: 4,
+  department: 'IC',
+  description: 'Estrutura de Dados',
+  requirements: [ {
+    code: 'MC202',
+    name: 'Estrutura de Dados',
+    credits: 6,
+    department: 'IC',
+    description: 'Estrutura de Dados'
+  }]
+});
+
+
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC102/offerings/2014-1-A').times(Infinity).reply(200, {
   'code'      : 'MC102',
   'year'      : '2014',
@@ -70,6 +87,19 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-B').time
 });
 
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-F').times(Infinity).reply(404);
+
+nock(nconf.get('HISTORY_URI')).get('/users/111111/histories?page=0').times(Infinity).reply(200, {
+  year: 2014,
+  course: '42',
+  modality: 'AA',
+  efficiencyCoefficient: 1,
+  courseProgress: 0
+});
+
+nock(nconf.get('HISTORY_URI')).get('/users/111111/histories/2014/disciplines/MC202').times(Infinity).reply(200, {
+  status: 5
+});
+
 
 it('should raise server', function (done) {
   'use strict';
