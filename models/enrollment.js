@@ -24,7 +24,7 @@ schema = new Schema({
   },
   'status'             : {
     'type'    : String,
-    'enum'    : [ 'new', 'processed' ],
+    'enum'    : [ 'new', 'processed' , 'cancelled' ],
     'default' : 'new'
   },
   'creditRaiseRequest' : {
@@ -128,35 +128,62 @@ schema.pre('save', function (next) {
 
 schema.path('createdAt').validate(function validateIfEnrollmentCanBeCreated(value, next) {
   'use strict';
-  var todayDate = new Date();
-  var year = todayDate.getFullYear();
-  calendar.event(year, 'enrollment-starts', function (error, enrollmentStartEvent) {
+  var todayDate, year;
+  todayDate = new Date();
+  year = todayDate.getFullYear();
+
+  if (this.status !== 'cancelled') {
+    betweenEvents(todayDate, year, 'enrollment-starts', year, 'enrollment-ends', next);
+  }
+  else {
+    next();
+  }
+}, 'outside the enrollment period');
+
+
+schema.path('status').validate(function validateIfEnrollmentCanBeCanceled(value, next) {
+  'use strict';
+  var todayDate, year;
+  todayDate = new Date();
+  year = todayDate.getFullYear();
+
+  if (this.status === 'cancelled') {
+    betweenEvents(todayDate, year, 'cancellation-starts', year, 'cancellation-ends', next);
+  }
+  else {
+    next();
+  }
+}, 'outside of enrollment cancellation period');
+
+/**
+ * Validates if a date is between two events in the calendar
+ * @param todayDate
+ * @param yearEventBefore
+ * @param idEventBefore
+ * @param yearEventAfter
+ * @param idEventAfter
+ * @param next
+ */
+function betweenEvents(todayDate, yearEventBefore, idEventBefore, yearEventAfter, idEventAfter, next) {
+  'use strict';
+
+  calendar.event(yearEventBefore, idEventBefore, function (error, enrollmentStartEvent) {
     if (error) {
       error = new VError(error, 'Error when trying to get the calendar event');
       next(error);
     }
 
-    calendar.event(year, 'enrollment-ends', function (error, enrollmentEndEvent) {
+    calendar.event(yearEventAfter, idEventAfter, function (error, enrollmentEndEvent) {
       if (error) {
         error = new VError(error, 'Error when trying to get the calendar event');
         next(error);
       }
 
-      next(
-          !error && !!enrollmentStartEvent && !!enrollmentEndEvent &&
+      next(!error && !!enrollmentStartEvent && !!enrollmentEndEvent &&
           new Date(enrollmentStartEvent.date) <= todayDate &&
-          todayDate < new Date(enrollmentEndEvent.date)
-      );
+          todayDate < new Date(enrollmentEndEvent.date));
     }.bind(this));
   }.bind(this));
-
-
-}, 'outside the enrollment period');
-
-schema.pre('remove', function (next) {
-  'use strict';
-  /*@TODO verificar se ainda é possivel realizar trancamento*/
-  next();
-});
+}
 
 module.exports = mongoose.model('Enrollment', schema);

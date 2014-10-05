@@ -114,6 +114,20 @@ nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/enrollment-ends').ti
   'description' : 'Dia em que nao é mais possivel fazer um pedido de matricula'
 });
 
+nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/cancellation-starts').times(Infinity).reply(200, {
+  'slug'        : 'cancellation-starts',
+  'name'        : 'Inicio do periodo de trancamento de matricula',
+  'date'        : new Date('2014-07-01'),
+  'description' : 'Dia que é possivel realizar um pedido de matricula'
+});
+
+nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/cancellation-ends').times(Infinity).reply(200, {
+  'slug'        : 'cancellation-ends',
+  'name'        : 'Final do periodo de trancamento de matricula',
+  'date'        : new Date('2014-10-15'),
+  'description' : 'Dia em que nao é mais possivel fazer um pedido de matricula'
+});
+
 
 
 

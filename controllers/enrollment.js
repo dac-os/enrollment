@@ -193,6 +193,11 @@ router
   enrollment = request.enrollment;
   enrollment.year = request.param('year');
   enrollment.period = request.param('period');
+
+  if (request.param('status')) {
+    enrollment.status = request.param('status');
+  }
+
   return enrollment.save(function updatedEnrollment(error) {
     if (error) {
       error = new VError(error, 'error updating enrollment: "%s"', request.params.enrollment);

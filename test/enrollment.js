@@ -89,10 +89,12 @@ describe('enrollment controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2013});
       request.send({'period' : '1'});
+      request.expect(function() {
+        timekeeper.travel(referenceDate);
+      });
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('createdAt').be.equal('outside the enrollment period');
-        timekeeper.travel(referenceDate);
       });
       request.end(done);
     });
@@ -108,10 +110,12 @@ describe('enrollment controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2013});
       request.send({'period' : '1'});
+      request.expect(function() {
+        timekeeper.travel(referenceDate);
+      });
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('createdAt').be.equal('outside the enrollment period');
-        timekeeper.travel(referenceDate);
       });
       request.end(done);
     });
@@ -308,6 +312,52 @@ describe('enrollment controller', function () {
       request.expect(function (response) {
         response.body.should.have.property('year').be.equal('required');
         response.body.should.have.property('period').be.equal('required');
+      });
+      request.end(done);
+    });
+
+    it('should raise error before enrollment cancellation period starts', function (done) {
+      var request, time;
+
+      time = new Date(2014, 0, 1);
+      timekeeper.travel(time);
+
+      request = supertest(app);
+      request = request.put('/users/111111/enrollments/2014-1');
+      request.set('csrf-token', 'adminToken');
+      request.send({'year' : 2014});
+      request.send({'period' : '1'});
+      request.send({'status' : 'cancelled'});
+      request.expect(function() {
+        timekeeper.travel(referenceDate);
+      });
+      request.expect(400);
+      request.expect(function (response) {
+        response.body.should.have.property('status').be.equal('outside of enrollment cancellation period');
+
+      });
+      request.end(done);
+    });
+
+    it('should raise error when enrollment cancellation period has already ended', function (done) {
+      var request, time;
+
+      time = new Date(2014, 11, 30);
+      timekeeper.travel(time);
+
+      request = supertest(app);
+      request = request.put('/users/111111/enrollments/2014-1');
+      request.set('csrf-token', 'adminToken');
+      request.send({'year' : 2014});
+      request.send({'period' : '1'});
+      request.send({'status' : 'cancelled'});
+      request.expect(function() {
+        timekeeper.travel(referenceDate);
+      });
+      request.expect(400);
+      request.expect(function (response) {
+        timekeeper.travel(referenceDate);
+        response.body.should.have.property('status').be.equal('outside of enrollment cancellation period');
       });
       request.end(done);
     });
