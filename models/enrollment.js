@@ -89,7 +89,6 @@ schema.pre('save', function setEnrollmentUpdatedAt(next) {
 schema.pre('save', function (next) {
   'use strict';
   /*@TODO verificar se uma solicitação de aumento de limite de créditos deve ser aberta*/
-
   var creditsLimit, year;
 
   var userId = this.user;
@@ -127,11 +126,32 @@ schema.pre('save', function (next) {
   next();
 });
 
-schema.pre('save', function (next) {
+schema.path('createdAt').validate(function validateIfEnrollmentCanBeCreated(value, next) {
   'use strict';
-  /*@TODO verificar se ainda é possivel realizar matricula*/
-  next();
-});
+  var todayDate = new Date();
+  var year = todayDate.getFullYear();
+  calendar.event(year, 'enrollment-starts', function (error, enrollmentStartEvent) {
+    if (error) {
+      error = new VError(error, 'Error when trying to get the calendar event');
+      next(error);
+    }
+
+    calendar.event(year, 'enrollment-ends', function (error, enrollmentEndEvent) {
+      if (error) {
+        error = new VError(error, 'Error when trying to get the calendar event');
+        next(error);
+      }
+
+      next(
+          !error && !!enrollmentStartEvent && !!enrollmentEndEvent &&
+          new Date(enrollmentStartEvent.date) <= todayDate &&
+          todayDate < new Date(enrollmentEndEvent.date)
+      );
+    }.bind(this));
+  }.bind(this));
+
+
+}, 'outside the enrollment period');
 
 schema.pre('remove', function (next) {
   'use strict';

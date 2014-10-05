@@ -1,13 +1,19 @@
 /*globals describe, before, beforeEach, it, after*/
 require('should');
-var supertest, app, Enrollment;
-
+var supertest, app, timekeeper, referenceDate, Enrollment;
 supertest = require('supertest');
 app = require('../index.js');
+timekeeper = require('timekeeper');
 Enrollment = require('../models/enrollment');
+referenceDate = new Date(2014, 6, 11);
 
 describe('enrollment controller', function () {
   'use strict';
+
+  before(function(done) {
+    timekeeper.travel(referenceDate);
+    done();
+  });
 
   describe('create', function () {
     before(Enrollment.remove.bind(Enrollment));
@@ -68,6 +74,44 @@ describe('enrollment controller', function () {
       request.expect(function (response) {
         response.body.should.have.property('year').be.equal('required');
         response.body.should.have.property('period').be.equal('required');
+      });
+      request.end(done);
+    });
+
+    it('should raise error before enrollment period starts', function (done) {
+      var request, time;
+
+      time = new Date(2014, 0, 1);
+      timekeeper.travel(time);
+
+      request = supertest(app);
+      request = request.post('/users/111111/enrollments');
+      request.set('csrf-token', 'adminToken');
+      request.send({'year' : 2013});
+      request.send({'period' : '1'});
+      request.expect(400);
+      request.expect(function (response) {
+        response.body.should.have.property('createdAt').be.equal('outside the enrollment period');
+        timekeeper.travel(referenceDate);
+      });
+      request.end(done);
+    });
+
+    it('should raise error when enrollment period has already ended', function (done) {
+      var request, time;
+
+      time = new Date(2014, 11, 30);
+      timekeeper.travel(time);
+
+      request = supertest(app);
+      request = request.post('/users/111111/enrollments');
+      request.set('csrf-token', 'adminToken');
+      request.send({'year' : 2013});
+      request.send({'period' : '1'});
+      request.expect(400);
+      request.expect(function (response) {
+        response.body.should.have.property('createdAt').be.equal('outside the enrollment period');
+        timekeeper.travel(referenceDate);
       });
       request.end(done);
     });

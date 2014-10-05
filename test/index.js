@@ -100,6 +100,22 @@ nock(nconf.get('HISTORY_URI')).get('/users/111111/histories/2014/disciplines/MC2
   status: 5
 });
 
+nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/enrollment-starts').times(Infinity).reply(200, {
+  'slug'        : 'enrollment-starts',
+  'name'        : 'Inicio do periodo de matricula',
+  'date'        : new Date('2014-07-01'),
+  'description' : 'Dia que é possivel realizar um pedido de matricula'
+});
+
+nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/enrollment-ends').times(Infinity).reply(200, {
+  'slug'        : 'enrollment-ends',
+  'name'        : 'Final do periodo de matricula',
+  'date'        : new Date('2014-07-15'),
+  'description' : 'Dia em que nao é mais possivel fazer um pedido de matricula'
+});
+
+
+
 
 it('should raise server', function (done) {
   'use strict';
