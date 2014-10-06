@@ -1,6 +1,7 @@
-var VError, mongoose, jsonSelect, nconf, courses, calendar, history, Schema, schema;
+var VError, async, mongoose, jsonSelect, nconf, courses, calendar, history, Schema, schema;
 
 VError = require('verror');
+async = require('async');
 mongoose = require('mongoose');
 jsonSelect = require('mongoose-json-select');
 courses = require('dacos-courses-driver');
@@ -82,6 +83,75 @@ schema.pre('save', function (next) {
   next();
 });
 
+/**
+ * verifica se uma solicitação de aumento de limite de créditos deve ser aberta
+ */
+schema.pre('save', function openCreditRaiseRequestIfNecessary(next) {
+  'use strict';
+
+  this.populate('enrollment');
+  this.populate(function () {
+    var user = this.enrollment.user;
+    history.histories(user, function (error, histories) {
+      if (error) {
+        error = new VError(error, 'Error when trying to get the history');
+        return next(error);
+      }
+
+      var currentHistory;
+
+      currentHistory = histories.sort(function (a, b) {
+        return a.year - b.year;
+      }).pop();
+
+      if (!currentHistory) {
+        error = new VError(error, 'Current history not found');
+        return next(error);
+      }
+
+      courses.modality(currentHistory.year, currentHistory.course + '-' + currentHistory.modality, function (error, modality) {
+        if (error) {
+          error = new VError(error, 'Error when trying to get the modality');
+          return next(error);
+        }
+
+        if (!modality) {
+          return next(new VError(error, 'Modality not found'));
+        }
+
+        var query;
+        query = this.model('Requirement').find();
+        query.where('enrollment').equals(this.enrollment._id);
+        query.where('_id').ne(this._id);
+        query.exec(function foundRequirement(error, requirements) {
+          requirements.push(this);
+
+          async.reduce(requirements, 0, function (sum, discipline, next) {
+            courses.discipline(discipline.discipline, function (error, discipline) {
+              next(error, discipline ? discipline.credits + sum : 0);
+            }.bind(this));
+          }.bind(this), function (error, credits) {
+            if (error) {
+              error = new VError(error, 'Error when trying to sum the credits');
+              return next(error);
+            }
+
+            if (credits > modality.creditLimit) {
+              this.enrollment.creditRaiseRequest.credits = credits;
+              this.enrollment.creditRaiseRequest.date = new Date();
+              this.enrollment.creditRaiseRequest.status = 'pending';
+              this.enrollment.save(next);
+            }
+            else {
+              next();
+            }
+          }.bind(this));
+        }.bind(this));
+      }.bind(this));
+    }.bind(this));
+  }.bind(this));
+});
+
 schema.path('offering').validate(function validateIfDisciplineOfferingExists(value, next) {
   'use strict';
 
@@ -117,12 +187,17 @@ schema.path('discipline').validate(function validateDisciplineRequirement(value,
         }
 
         histories.forEach(function (userHistory) {
-          discipline.requirements.forEach(function (disciplineRequirement) {
-            history.discipline(user, userHistory.year, disciplineRequirement.code, function (error, disciplineHistory) {
-              next(!error && !!disciplineHistory &&
-              [1, 2, 3, 4, 7, 10, 11, 12, 13, 14, 15, 16, 20].lastIndexOf(disciplineHistory.status) > -1);
+          if (discipline.requirements.length > 0) {
+            discipline.requirements.forEach(function (disciplineRequirement) {
+              history.discipline(user, userHistory.year, disciplineRequirement.code, function (error, disciplineHistory) {
+                next(!error && !!disciplineHistory &&
+                [1, 2, 3, 4, 7, 10, 11, 12, 13, 14, 15, 16, 20].lastIndexOf(disciplineHistory.status) > -1);
+              }.bind(this));
             }.bind(this));
-          }.bind(this));
+          }
+          else {
+            next();
+          }
         }.bind(this));
       }.bind(this));
     }.bind(this));

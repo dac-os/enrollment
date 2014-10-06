@@ -86,46 +86,6 @@ schema.pre('save', function setEnrollmentUpdatedAt(next) {
   next();
 });
 
-schema.pre('save', function (next) {
-  'use strict';
-  /*@TODO verificar se uma solicitação de aumento de limite de créditos deve ser aberta*/
-  var creditsLimit, year;
-
-  var userId = this.user;
-  history.histories(userId, function (error, histories) {
-    if (error) { return next(error); }
-
-    var currentHistory;
-
-    currentHistory = histories.sort(function (a, b) {
-      return a.year - b.year;
-    }).pop();
-
-    if (!currentHistory) { return next(new Error('history not found')); }
-
-    year = currentHistory.year;
-
-    courses.catalog(year, function (error, catalog) {
-      if (error) { return next(error); }
-      if (!catalog) { return next(new VError(error, 'catalog not found')); }
-      creditsLimit = catalog.credits.maximum;
-      async.reduce(this.disciplines, 0, function (sum, discipline, next) {
-        courses.discipline({'discipline' : discipline.discipline}, function (error, discipline) {
-          next(error, discipline ? discipline.credits + sum : 0);
-        });
-      }, function (error, credits) {
-        if (error) { return next(error); }
-        if (credits > creditsLimit) {
-          this.creditRaiseRequest.credits = credits;
-          this.creditRaiseRequest.date = new Date();
-        }
-        next();
-      }.bind(this));
-    }.bind(this));
-  }.bind(this));
-  next();
-});
-
 schema.path('createdAt').validate(function validateIfEnrollmentCanBeCreated(value, next) {
   'use strict';
   var todayDate, year;
@@ -139,7 +99,6 @@ schema.path('createdAt').validate(function validateIfEnrollmentCanBeCreated(valu
     next();
   }
 }, 'outside the enrollment period');
-
 
 schema.path('status').validate(function validateIfEnrollmentCanBeCanceled(value, next) {
   'use strict';

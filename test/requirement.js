@@ -131,6 +131,56 @@ describe('requirement controller', function () {
       request.end(done);
     });
 
+    describe('with credit raise request', function () {
+      before(Requirement.remove.bind(Requirement));
+
+      before(function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.end(done);
+      });
+
+      it('should not have a credit raise request', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'adminToken');
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.not.have.property('creditRaiseRequest');
+        });
+        request.end(done);
+      });
+
+      it('should create with a credit raise request', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MA111'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(201);
+        request.end(done);
+      });
+
+      it('should have a credit raise request', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'adminToken');
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.creditRaiseRequest.should.have.property('credits').be.equal(12);
+          response.body.creditRaiseRequest.should.have.property('status').be.equal('pending');
+        });
+        request.end(done);
+      });
+    });
+
     describe('with code taken', function () {
       before(Requirement.remove.bind(Requirement));
 
