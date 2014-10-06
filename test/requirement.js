@@ -1,16 +1,23 @@
 /*globals describe, before, beforeEach, it, after*/
 require('should');
-var supertest, app, Requirement, Enrollment;
+var supertest, app, timekeeper, Requirement, referenceDate, Enrollment;
 
 supertest = require('supertest');
 app = require('../index.js');
+timekeeper = require('timekeeper');
 Requirement = require('../models/requirement');
 Enrollment = require('../models/enrollment');
+referenceDate = new Date(2014, 6, 11);
 
 describe('requirement controller', function () {
   'use strict';
 
   before(Enrollment.remove.bind(Enrollment));
+
+  before(function(done) {
+    timekeeper.travel(referenceDate);
+    done();
+  });
 
   before(function (done) {
     var request;
@@ -305,6 +312,52 @@ describe('requirement controller', function () {
       request.expect(function (response) {
         response.body.should.have.property('discipline').be.equal('required');
         response.body.should.have.property('offering').be.equal('required');
+      });
+      request.end(done);
+    });
+
+    it('should raise error before enrollment cancellation period starts', function (done) {
+      var request, time;
+
+      time = new Date('2014-02-01');
+      timekeeper.travel(time);
+
+      request = supertest(app);
+      request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+      request.set('csrf-token', 'adminToken');
+      request.send({'discipline' : 'MC202'});
+      request.send({'offering' : '2014-1-B'});
+      request.send({'status' : 'quit'});
+      request.expect(function() {
+        timekeeper.travel(referenceDate);
+      });
+      request.expect(400);
+      request.expect(function (response) {
+        response.body.should.have.property('status').be.equal('outside of discipline quit period');
+
+      });
+      request.end(done);
+    });
+
+    it('should raise error when enrollment cancellation period has already ended', function (done) {
+      var request, time;
+
+      time = new Date('2014-12-30');
+      timekeeper.travel(time);
+
+      request = supertest(app);
+      request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+      request.set('csrf-token', 'adminToken');
+      request.send({'discipline' : 'MC202'});
+      request.send({'offering' : '2014-1-B'});
+      request.send({'status' : 'quit'});
+      request.expect(function() {
+        timekeeper.travel(referenceDate);
+      });
+      request.expect(400);
+      request.expect(function (response) {
+        timekeeper.travel(referenceDate);
+        response.body.should.have.property('status').be.equal('outside of discipline quit period');
       });
       request.end(done);
     });

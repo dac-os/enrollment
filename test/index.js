@@ -118,14 +118,28 @@ nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/cancellation-starts'
   'slug'        : 'cancellation-starts',
   'name'        : 'Inicio do periodo de trancamento de matricula',
   'date'        : new Date('2014-07-01'),
-  'description' : 'Dia que é possivel realizar um pedido de matricula'
+  'description' : 'Dia que é possivel realizar um pedido de trancamento de matricula'
 });
 
 nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/cancellation-ends').times(Infinity).reply(200, {
   'slug'        : 'cancellation-ends',
   'name'        : 'Final do periodo de trancamento de matricula',
   'date'        : new Date('2014-10-15'),
-  'description' : 'Dia em que nao é mais possivel fazer um pedido de matricula'
+  'description' : 'Dia em que nao é mais possivel fazer um pedido de trancamento de matricula'
+});
+
+nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/discipline-quit-starts').times(Infinity).reply(200, {
+  'slug'        : 'discipline-quit-starts',
+  'name'        : 'Inicio do periodo de desistencia de disciplinas',
+  'date'        : new Date('2014-07-01'),
+  'description' : 'Dia que é possivel realizar um pedido de desistencia de disciplina'
+});
+
+nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/discipline-quit-ends').times(Infinity).reply(200, {
+  'slug'        : 'discipline-quit-ends',
+  'name'        : 'Final do periodo de desistencia de disciplinas',
+  'date'        : new Date('2014-10-15'),
+  'description' : 'Dia em que nao é mais possivel fazer um pedido de desistencia de disciplina'
 });
 
 

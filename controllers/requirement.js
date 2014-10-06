@@ -208,7 +208,11 @@ router
   requirement = request.requirement;
   requirement.discipline = request.param('discipline');
   requirement.offering = request.param('offering');
-  requirement.status = request.param('status');
+
+  if (request.param('status')) {
+    requirement.status = request.param('status');
+  }
+
   requirement.comment = request.param('comment');
   return requirement.save(function updatedRequirement(error) {
     if (error) {

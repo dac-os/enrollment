@@ -5,7 +5,7 @@ supertest = require('supertest');
 app = require('../index.js');
 timekeeper = require('timekeeper');
 Enrollment = require('../models/enrollment');
-referenceDate = new Date(2014, 6, 11);
+referenceDate = new Date('2014-07-11');
 
 describe('enrollment controller', function () {
   'use strict';
@@ -81,7 +81,7 @@ describe('enrollment controller', function () {
     it('should raise error before enrollment period starts', function (done) {
       var request, time;
 
-      time = new Date(2014, 0, 1);
+      time = new Date('2014-02-01');
       timekeeper.travel(time);
 
       request = supertest(app);
@@ -102,7 +102,7 @@ describe('enrollment controller', function () {
     it('should raise error when enrollment period has already ended', function (done) {
       var request, time;
 
-      time = new Date(2014, 11, 30);
+      time = new Date('2014-12-30');
       timekeeper.travel(time);
 
       request = supertest(app);
@@ -319,7 +319,7 @@ describe('enrollment controller', function () {
     it('should raise error before enrollment cancellation period starts', function (done) {
       var request, time;
 
-      time = new Date(2014, 0, 1);
+      time = new Date('2014-02-01');
       timekeeper.travel(time);
 
       request = supertest(app);
@@ -342,7 +342,7 @@ describe('enrollment controller', function () {
     it('should raise error when enrollment cancellation period has already ended', function (done) {
       var request, time;
 
-      time = new Date(2014, 11, 30);
+      time = new Date('2014-12-30');
       timekeeper.travel(time);
 
       request = supertest(app);

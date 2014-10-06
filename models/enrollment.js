@@ -180,8 +180,8 @@ function betweenEvents(todayDate, yearEventBefore, idEventBefore, yearEventAfter
       }
 
       next(!error && !!enrollmentStartEvent && !!enrollmentEndEvent &&
-          new Date(enrollmentStartEvent.date) <= todayDate &&
-          todayDate < new Date(enrollmentEndEvent.date));
+        new Date(enrollmentStartEvent.date) <= todayDate &&
+        todayDate < new Date(enrollmentEndEvent.date));
     }.bind(this));
   }.bind(this));
 }

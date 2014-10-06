@@ -1,9 +1,10 @@
-var VError, mongoose, jsonSelect, nconf, courses, history, Schema, schema;
+var VError, mongoose, jsonSelect, nconf, courses, calendar, history, Schema, schema;
 
 VError = require('verror');
 mongoose = require('mongoose');
 jsonSelect = require('mongoose-json-select');
 courses = require('dacos-courses-driver');
+calendar = require('dacos-calendar-driver');
 history = require('dacos-history-driver');
 nconf = require('nconf');
 Schema = mongoose.Schema;
@@ -24,7 +25,7 @@ schema = new Schema({
   },
   'status'     : {
     'type'    : String,
-    'enum'    : [ 'new', 'approved', 'rejected' ],
+    'enum'    : [ 'new', 'approved', 'rejected', 'quit' ],
     'default' : 'new'
   },
   'comment'    : {
@@ -129,6 +130,21 @@ schema.path('discipline').validate(function validateDisciplineRequirement(value,
 }, 'discipline requirement not fulfilled');
 
 
+schema.path('status').validate(function validateIfRequirementCanBe(value, next) {
+  'use strict';
+  var todayDate, year;
+  todayDate = new Date();
+  year = todayDate.getFullYear();
+
+  if (this.status === 'quit') {
+    betweenEvents(todayDate, year, 'discipline-quit-starts', year, 'discipline-quit-ends', next);
+  }
+  else {
+    next();
+  }
+}, 'outside of discipline quit period');
+
+
 schema.pre('save', function (next) {
   'use strict';
   /*@TODO verificar se a disciplina ja não foi cursada*/
@@ -140,5 +156,36 @@ schema.pre('save', function (next) {
   /*@TODO verificar se não existe conflito de horário*/
   next();
 });
+
+/**
+ * Validates if a date is between two events in the calendar
+ * @param todayDate
+ * @param yearEventBefore
+ * @param idEventBefore
+ * @param yearEventAfter
+ * @param idEventAfter
+ * @param next
+ */
+function betweenEvents(todayDate, yearEventBefore, idEventBefore, yearEventAfter, idEventAfter, next) {
+  'use strict';
+
+  calendar.event(yearEventBefore, idEventBefore, function (error, enrollmentStartEvent) {
+    if (error) {
+      error = new VError(error, 'Error when trying to get the calendar event');
+      next(error);
+    }
+
+    calendar.event(yearEventAfter, idEventAfter, function (error, enrollmentEndEvent) {
+      if (error) {
+        error = new VError(error, 'Error when trying to get the calendar event');
+        next(error);
+      }
+
+      next(!error && !!enrollmentStartEvent && !!enrollmentEndEvent &&
+        new Date(enrollmentStartEvent.date) <= todayDate &&
+        todayDate < new Date(enrollmentEndEvent.date));
+    }.bind(this));
+  }.bind(this));
+}
 
 module.exports = mongoose.model('Requirement', schema);
