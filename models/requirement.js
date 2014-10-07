@@ -212,7 +212,7 @@ schema.path('status').validate(function validateIfRequirementCanBe(value, next) 
   year = todayDate.getFullYear();
 
   if (this.status === 'quit') {
-    betweenEvents(todayDate, year, 'discipline-quit-starts', year, 'discipline-quit-ends', next);
+    calendar.betweenEvents(todayDate, year, 'discipline-quit-starts', year, 'discipline-quit-ends', next);
   }
   else {
     next();
@@ -231,36 +231,5 @@ schema.pre('save', function (next) {
   /*@TODO verificar se não existe conflito de horário*/
   next();
 });
-
-/**
- * Validates if a date is between two events in the calendar
- * @param todayDate
- * @param yearEventBefore
- * @param idEventBefore
- * @param yearEventAfter
- * @param idEventAfter
- * @param next
- */
-function betweenEvents(todayDate, yearEventBefore, idEventBefore, yearEventAfter, idEventAfter, next) {
-  'use strict';
-
-  calendar.event(yearEventBefore, idEventBefore, function (error, enrollmentStartEvent) {
-    if (error) {
-      error = new VError(error, 'Error when trying to get the calendar event');
-      next(error);
-    }
-
-    calendar.event(yearEventAfter, idEventAfter, function (error, enrollmentEndEvent) {
-      if (error) {
-        error = new VError(error, 'Error when trying to get the calendar event');
-        next(error);
-      }
-
-      next(!error && !!enrollmentStartEvent && !!enrollmentEndEvent &&
-        new Date(enrollmentStartEvent.date) <= todayDate &&
-        todayDate < new Date(enrollmentEndEvent.date));
-    }.bind(this));
-  }.bind(this));
-}
 
 module.exports = mongoose.model('Requirement', schema);
