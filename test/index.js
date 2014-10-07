@@ -75,6 +75,14 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC302').times(Infinity).reply(2
   }]
 });
 
+nock(nconf.get('COURSES_URI')).get('/disciplines/CE738').times(Infinity).reply(200, {
+  code: 'CE738',
+  name: 'Economia para Engenharia',
+  credits: 4,
+  department: 'IE',
+  description: 'Economia para Engenharia',
+  requirements: []
+});
 
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC102/offerings/2014-1-A').times(Infinity).reply(200, {
   'code'      : 'MC102',
@@ -130,6 +138,25 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-B').time
   ]
 });
 
+nock(nconf.get('COURSES_URI')).get('/disciplines/CE738/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'      : 'CE738',
+  'year'      : '2014',
+  'period'    : '1',
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 19,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 21,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-F').times(Infinity).reply(404);
 
 nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA').times(Infinity).reply(200, {
@@ -150,6 +177,10 @@ nock(nconf.get('HISTORY_URI')).get('/users/111111/histories?page=0').times(Infin
 
 nock(nconf.get('HISTORY_URI')).get('/users/111111/histories/2014/disciplines/MC202').times(Infinity).reply(200, {
   status: 5
+});
+
+nock(nconf.get('HISTORY_URI')).get('/users/111111/histories/2014/disciplines/CE738').times(Infinity).reply(200, {
+  status: 4
 });
 
 nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/enrollment-starts').times(Infinity).reply(200, {

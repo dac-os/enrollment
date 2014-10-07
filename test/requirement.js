@@ -120,6 +120,19 @@ describe('requirement controller', function () {
       request.end(done);
     });
 
+    it('should raise error when user was already approved on discipline', function(done) {
+      var request;
+      request = supertest(app);
+      request = request.post('/users/111111/enrollments/2014-1/requirements');
+      request.set('csrf-token', 'adminToken');
+      request.send({'discipline' : 'CE738'});
+      request.send({'offering' : '2014-1-A'});
+      request.expect(400);
+      request.expect(function (response) {
+        response.body.should.have.property('discipline').be.equal('user was already approved on discipline');
+      });
+      request.end(done);
+    });
     it('should create', function (done) {
       var request;
       request = supertest(app);

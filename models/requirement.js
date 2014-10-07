@@ -220,11 +220,71 @@ schema.path('status').validate(function validateIfRequirementCanBe(value, next) 
 }, 'outside of discipline quit period');
 
 
-schema.pre('save', function (next) {
+schema.path('discipline').validate(function validateDisciplineApproval(value, next) {
   'use strict';
   /*@TODO verificar se a disciplina ja não foi cursada*/
-  next();
-});
+
+  courses.discipline(this.discipline, function (error, discipline) {
+    if (error) {
+      error = new VError(error, 'Error when trying to get the discipline');
+      return next(error);
+    }
+
+    if (!discipline) {
+      return next(false);
+    }
+
+    this.populate('enrollment');
+    this.populate(function () {
+      var user  = this.enrollment.user;
+      history.histories(user, function (error, histories) {
+        if (error) {
+          error = new VError(error, 'Error when trying to get the histories');
+          return next(error);
+        }
+
+        if (!histories) {
+          return next(false);
+        }
+
+
+        async.reduce(histories, 0, function (sum, userHistory, next) {
+          history.discipline(user, userHistory.year, discipline.code, function(error, disciplineHistory) {
+            //console.log(user, discipline, error, disciplineHistory);
+
+
+            /*
+            if (error &&
+            error !== ['Error: Nock: No match for request GET http://localhost/users/111111/histories/2014/disciplines/MC102 ']) { 
+              console.log(error);
+              error = new VError(error, 'Error when trying to get the discipline');
+              return next(error);
+            }
+            */
+            
+
+            // If user was already approved on discipline, fail the validation.
+            if (disciplineHistory && [1, 2, 3, 4, 7, 10, 11, 12, 13, 14, 15, 16, 20].lastIndexOf(disciplineHistory.status) > -1) {
+              console.log('Triggering error: user already approved on discipline TEST');
+              next(error, 1 + sum);
+            } 
+            else {
+              next(error, sum);
+            }
+          }.bind(this));
+        }.bind(this), function (error, sum) {
+          console.log(sum);
+          next(sum === 0)
+        });
+        /*histories.forEach(function (userHistory) {
+          
+          }.bind(this));
+          next();
+        }.bind(this));*/
+      }.bind(this));
+    }.bind(this));
+  }.bind(this)); 
+}, 'user was already approved on discipline');
 
 schema.pre('save', function (next) {
   'use strict';
