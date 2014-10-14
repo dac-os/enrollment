@@ -174,10 +174,36 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.expect(200);
         request.expect(function (response) {
+          response.body.should.have.property('creditRaiseRequest');
           response.body.creditRaiseRequest.should.have.property('credits').be.equal(12);
           response.body.creditRaiseRequest.should.have.property('status').be.equal('pending');
         });
         request.end(done);
+      });
+
+      describe('with discipline offering time conflict', function () {
+        before(Requirement.remove.bind(Requirement));
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline' : 'MA111'});
+          request.send({'offering' : '2014-1-A'});
+          request.end(done);
+        });
+
+        it('should raise an error when there is a time conflict', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline' : 'MA141'});
+          request.send({'offering' : '2014-1-A'});
+          request.expect(400);
+          request.end(done);
+        });
       });
     });
 

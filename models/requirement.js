@@ -98,6 +98,10 @@ schema.pre('save', function openCreditRaiseRequestIfNecessary(next) {
         return next(error);
       }
 
+      if (!histories) {
+        return next(false);
+      }
+
       var currentHistory;
 
       currentHistory = histories.sort(function (a, b) {
@@ -123,11 +127,11 @@ schema.pre('save', function openCreditRaiseRequestIfNecessary(next) {
         query = this.model('Requirement').find();
         query.where('enrollment').equals(this.enrollment._id);
         query.where('_id').ne(this._id);
-        query.exec(function foundRequirement(error, requirements) {
+        query.exec(function foundRequirements(error, requirements) {
           requirements.push(this);
 
-          async.reduce(requirements, 0, function (sum, discipline, next) {
-            courses.discipline(discipline.discipline, function (error, discipline) {
+          async.reduce(requirements, 0, function (sum, disciplineRequirement, next) {
+            courses.discipline(disciplineRequirement.discipline, function (error, discipline) {
               next(error, discipline ? discipline.credits + sum : 0);
             }.bind(this));
           }.bind(this), function (error, credits) {
@@ -205,7 +209,7 @@ schema.path('discipline').validate(function validateDisciplineRequirement(value,
 }, 'discipline requirement not fulfilled');
 
 
-schema.path('status').validate(function validateIfRequirementCanBe(value, next) {
+schema.path('status').validate(function validateIfRequirementCanBeQuit(value, next) {
   'use strict';
   var todayDate, year;
   todayDate = new Date();
@@ -226,10 +230,68 @@ schema.pre('save', function (next) {
   next();
 });
 
-schema.pre('save', function (next) {
+schema.path('offering').validate(function validateIfRequirementHasTimeConflict(value, next) {
   'use strict';
+
+  this.populate('enrollment');
+  this.populate(function () {
+
+    courses.offering(this.discipline, this.offering, function foundDisciplineOffering(error, offering) {
+      if (error) {
+        error = new VError(error, 'Error when trying to get the discipline offering');
+        return next(error);
+      }
+
+      if (!offering) {
+        return next(false);
+      }
+
+      var query;
+      query = this.model('Requirement').find();
+      query.where('enrollment').equals(this.enrollment._id);
+      query.where('_id').ne(this._id);
+      query.exec(function foundRequirements(error, requirements) {
+        //console.log(requirements)
+        async.reduce(requirements, 0, function (sum, disciplineRequirement, next) {d
+          courses.discipline(disciplineRequirement.discipline, function (error, discipline) {
+            courses.offering(discipline.discipline, discipline.offering, function foundDisciplineOffering(error, offeringConflict) {
+              if (error) {
+                error = new VError(error, 'Error when trying to get discipline offering');
+                return next(error);
+              }
+
+              if (!offeringConflict) {
+                return next(false);
+              }
+
+
+              var conflict = offering.schedules.some(function (schedule) {
+                return offeringConflict.schedules.some(function (otherSchedule) {
+                  return (schedule.weekday === otherSchedule.weekday && schedule.hour === otherSchedule.hour);
+                });
+              });
+
+              if (conflict) {
+                console.log(offering)
+                console.log(offeringConflict)
+              }
+
+              next(!error, conflict ? 1 + sum : sum);
+            });
+
+          }.bind(this));
+        }.bind(this), function (error, conflicts) {
+          console.log(conflicts);
+          next(!error && conflicts > 0);
+        }.bind(this));
+      }.bind(this));
+    }.bind(this));
+
+
+
+  }.bind(this));
+
   /*@TODO verificar se não existe conflito de horário*/
-  next();
 });
 
 module.exports = mongoose.model('Requirement', schema);

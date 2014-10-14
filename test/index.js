@@ -60,6 +60,15 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA111').times(Infinity).reply(2
   requirements: []
 });
 
+nock(nconf.get('COURSES_URI')).get('/disciplines/MA141').times(Infinity).reply(200, {
+  code: 'MA141',
+  name: 'Geometria Analítica e Vetores',
+  credits: 4,
+  department: 'IMMEC',
+  description: 'Geometria Analítica e Vetores',
+  requirements: []
+});
+
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC302').times(Infinity).reply(200, {
   code: 'MC302',
   name: 'Programacao orientada a objetos',
@@ -108,6 +117,24 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA111/offerings/2014-1-A').time
       'weekday' : 4,
       'hour'    : 16,
       'room'    : 'CC02'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MA141/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'      : 'MA111',
+  'year'      : '2014',
+  'period'    : '1',
+  'schedules' : [
+    {
+      'weekday' : 2,
+      'hour'    : 14,
+      'room'    : 'CB05'
+    },
+    {
+      'weekday' : 4,
+      'hour'    : 20,
+      'room'    : 'CB05'
     }
   ]
 });
