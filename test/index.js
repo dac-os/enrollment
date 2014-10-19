@@ -122,7 +122,7 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA111/offerings/2014-1-A').time
 });
 
 nock(nconf.get('COURSES_URI')).get('/disciplines/MA141/offerings/2014-1-A').times(Infinity).reply(200, {
-  'code'      : 'MA111',
+  'code'      : 'MA141',
   'year'      : '2014',
   'period'    : '1',
   'schedules' : [
@@ -145,12 +145,12 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-B').time
   'period'    : '1',
   'schedules' : [
     {
-      'weekday' : 3,
+      'weekday' : 4,
       'hour'    : 14,
       'room'    : 'CC02'
     },
     {
-      'weekday' : 5,
+      'weekday' : 6,
       'hour'    : 16,
       'room'    : 'CC02'
     }

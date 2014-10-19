@@ -181,7 +181,7 @@ describe('requirement controller', function () {
         request.end(done);
       });
 
-      describe('with discipline offering time conflict', function () {
+      describe('with discipline offering', function () {
         before(Requirement.remove.bind(Requirement));
 
         before(function (done) {

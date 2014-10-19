@@ -251,47 +251,34 @@ schema.path('offering').validate(function validateIfRequirementHasTimeConflict(v
       query.where('enrollment').equals(this.enrollment._id);
       query.where('_id').ne(this._id);
       query.exec(function foundRequirements(error, requirements) {
-        //console.log(requirements)
-        async.reduce(requirements, 0, function (sum, disciplineRequirement, next) {d
-          courses.discipline(disciplineRequirement.discipline, function (error, discipline) {
-            courses.offering(discipline.discipline, discipline.offering, function foundDisciplineOffering(error, offeringConflict) {
-              if (error) {
-                error = new VError(error, 'Error when trying to get discipline offering');
-                return next(error);
-              }
+        async.every(requirements, function (disciplineRequirement, next) {
+          courses.offering(disciplineRequirement.discipline, disciplineRequirement.offering, function foundDisciplineOffering(error, offeringConflict) {
+            if (error) {
+              error = new VError(error, 'Error when trying to get discipline offering');
+              return next(error);
+            }
 
-              if (!offeringConflict) {
-                return next(false);
-              }
+            if (!offeringConflict) {
+              return next(false);
+            }
 
+            // throw an error with equal discipline in another validation
+            if (offeringConflict.code == offering.code) {
+              return next(true);
+            }
 
-              var conflict = offering.schedules.some(function (schedule) {
-                return offeringConflict.schedules.some(function (otherSchedule) {
-                  return (schedule.weekday === otherSchedule.weekday && schedule.hour === otherSchedule.hour);
-                });
+            var conflict = offering.schedules.some(function (schedule) {
+              return offeringConflict.schedules.some(function (otherSchedule) {
+                return (schedule.weekday === otherSchedule.weekday && schedule.hour === otherSchedule.hour);
               });
-
-              if (conflict) {
-                console.log(offering)
-                console.log(offeringConflict)
-              }
-
-              next(!error, conflict ? 1 + sum : sum);
             });
 
-          }.bind(this));
-        }.bind(this), function (error, conflicts) {
-          console.log(conflicts);
-          next(!error && conflicts > 0);
-        }.bind(this));
+            next(!conflict);
+          });
+        }.bind(this), next);
       }.bind(this));
     }.bind(this));
-
-
-
   }.bind(this));
-
-  /*@TODO verificar se não existe conflito de horário*/
-});
+}, 'discipline with time conflict');
 
 module.exports = mongoose.model('Requirement', schema);
