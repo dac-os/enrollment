@@ -55,7 +55,7 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA111').times(Infinity).reply(2
   code: 'MA111',
   name: 'Calculo 1',
   credits: 6,
-  department: 'IMMEC',
+  department: 'IMECC',
   description: 'Calculo 1',
   requirements: []
 });
@@ -64,7 +64,7 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA141').times(Infinity).reply(2
   code: 'MA141',
   name: 'Geometria Analítica e Vetores',
   credits: 4,
-  department: 'IMMEC',
+  department: 'IMECC',
   description: 'Geometria Analítica e Vetores',
   requirements: []
 });
