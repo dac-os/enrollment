@@ -202,6 +202,9 @@ describe('requirement controller', function () {
           request.send({'discipline' : 'MA141'});
           request.send({'offering' : '2014-1-A'});
           request.expect(400);
+          request.expect(function (response) {
+            response.body.should.have.property('offering').be.equal('discipline with time conflict');
+          });
           request.end(done);
         });
       });
