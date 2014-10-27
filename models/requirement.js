@@ -77,11 +77,135 @@ schema.pre('save', function setRequirementUpdatedAt(next) {
   next();
 });
 
-schema.pre('save', function (next) {
+schema.pre('save', function setPriorityScore(next) {
   'use strict';
-  /*@TODO Calcular a prioridade*/
-  next();
+
+  var priorityScore;
+
+  this.populate('enrollment');
+  this.populate(function () {
+    getDisciplineInformation(this.enrollment, this.discipline, this.offering, function (blockType, isAhead, isReserved) {
+
+      // Calculating priority score
+      if (blockType === 'required') {
+        // Obligatory discipline
+        if (isAhead) {
+          if (isReserved) {
+            priorityScore = 6;
+          } else {
+            priorityScore = 3;
+          }
+        } else {
+          if (isReserved) {
+            priorityScore = 9;
+          } else {
+            priorityScore = 7;
+          }
+        }
+      } else if (blockType === 'optional') {
+        // Optional discipline
+        if (isAhead) {
+          if (isReserved) {
+            priorityScore = 5;
+          } else {
+            priorityScore = 2;
+          }
+        } else {
+          if (isReserved) {
+            priorityScore = 8;
+          } else {
+            priorityScore = 4;
+          }
+        }
+      } else if (blockType === 'extra') {
+        // Extra-curricular discipline
+        if (isAhead) {
+          if (isReserved) {
+            priorityScore = 1;
+          } else {
+            priorityScore = 0;
+          }
+        } else {
+          // TODO check why this is equal to the last conditional
+          if (isReserved) {
+            priorityScore = 1;
+          } else {
+            priorityScore = 0;
+          }
+        }
+      }
+
+      this.priority = priorityScore;
+      console.log(this.priority);
+
+      next();
+    }.bind(this));
+  }.bind(this));
 });
+
+function getDisciplineInformation(enrollment, discipline, disciplineOffering, next) {
+  'use strict';
+
+  var blockType , isAhead, isReserved;
+
+  blockType = 'optional';
+  isAhead = false;
+  isReserved = false;
+
+  history.currentHistory(enrollment.user, function (error, currentHistory) {
+
+    if (error) {
+      error = new VError(error, 'Error when trying to get the history');
+      return next(error);
+    }
+
+    if (!currentHistory) {
+      return next(false);
+    }
+
+    courses.blocks(currentHistory.year, currentHistory.course + ' ' + currentHistory.modality, function (error, blocks) {
+      if (error) {
+        return next('');
+      }
+
+      async.some(blocks, function(block) {
+
+        courses.requirement(currentHistory.year, currentHistory.course + ' ' + currentHistory.modality, block.code, this.discipline, function (error, requirement) {
+          if (requirement) {
+            var currentDate = new Date();
+
+            var currentSemester;
+            if (currentDate.getMonth() < 6) {
+              currentSemester = 1;
+            } else if(currentDate.getMonth() > 6) {
+              currentSemester = 2;
+            } else {
+              currentSemester = currentDate.getDay() < 15 ? 1 : 2;
+            }
+
+            //TODO figure out how to get the offering reservation
+
+            var userSemester = (currentDate.getFullYear() - currentHistory.year) * 2 + currentSemester;
+            //var offeringReservations = disciplineOffering && disciplineOffering.reservations || [];
+
+            blockType = block.type;
+            //isAhead = offeringReservations.some(function (offeringReservation) { return offeringReservation === historyId; });
+            isReserved = requirement && (userSemester < requirement.suggestedSemester);
+
+            //requirement.code
+
+            next(true);
+          }
+          else {
+            next(false);
+          }
+        });
+      }, function(result) {
+        next(blockType, isAhead, isReserved);
+      });
+    });
+  });
+}
 
 /**
  * verifica se uma solicitação de aumento de limite de créditos deve ser aberta
@@ -92,25 +216,14 @@ schema.pre('save', function openCreditRaiseRequestIfNecessary(next) {
   this.populate('enrollment');
   this.populate(function () {
     var user = this.enrollment.user;
-    history.histories(user, function (error, histories) {
+    history.currentHistory(user, function (error, currentHistory) {
       if (error) {
         error = new VError(error, 'Error when trying to get the history');
         return next(error);
       }
 
-      if (!histories) {
-        return next(false);
-      }
-
-      var currentHistory;
-
-      currentHistory = histories.sort(function (a, b) {
-        return a.year - b.year;
-      }).pop();
-
       if (!currentHistory) {
-        error = new VError(error, 'Current history not found');
-        return next(error);
+        return next(false);
       }
 
       courses.modality(currentHistory.year, currentHistory.course + '-' + currentHistory.modality, function (error, modality) {
@@ -167,6 +280,7 @@ schema.path('offering').validate(function validateIfDisciplineOfferingExists(val
 schema.path('discipline').validate(function validateDisciplineRequirement(value, next) {
   'use strict';
 
+  // TODO check this validation
   courses.discipline(this.discipline, function (error, discipline) {
     if (error) {
       error = new VError(error, 'Error when trying to get the discipline');
