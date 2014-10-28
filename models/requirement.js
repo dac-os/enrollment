@@ -118,7 +118,7 @@ schema.pre('save', function setPriorityScore(next) {
                 blockType = block.type;
                 isAhead = offeringReservations.some(function (offeringReservation) {
                   return offeringReservation.course === currentHistory.course
-                  && (!offeringReservation.year || offeringReservation.year === currentHistory.year);
+                  && (!offeringReservation.yearCatalog || offeringReservation.yearCatalog === currentHistory.year);
                 });
                 isReserved = requirement && (userSemester < requirement.suggestedSemester);
                 next(true);
