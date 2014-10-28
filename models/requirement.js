@@ -339,7 +339,7 @@ schema.path('status').validate(function validateIfRequirementCanBeQuit(value, ne
 
 schema.path('discipline').validate(function validateDisciplineApproval(value, next) {
   'use strict';
-  /*@TODO verificar se a disciplina ja não foi cursada*/
+
   async.waterfall([function (next) {
     this.populate('enrollment');
     this.populate(next);
@@ -354,12 +354,11 @@ schema.path('discipline').validate(function validateDisciplineApproval(value, ne
     }, next);
   }.bind(this), function (data, next) {
     async.every(data.histories, function (userHistory, next) {
-      history.discipline(this.enrollment.user, userHistory.year, data.discipline.code, function(error, disciplineHistory) {
+      history.discipline(this.enrollment.user, userHistory.year, data.discipline.code, function (error, disciplineHistory) {
         next(!!error || !(disciplineHistory && [1, 2, 3, 4, 7, 10, 11, 12, 13, 14, 15, 16, 20].lastIndexOf(disciplineHistory.status) > -1));
       }.bind(this));
     }.bind(this), next);
   }.bind(this)], next);
-
 }, 'user was already approved on discipline');
 
 schema.path('offering').validate(function validateIfRequirementHasTimeConflict(value, next) {
@@ -370,7 +369,7 @@ schema.path('offering').validate(function validateIfRequirementHasTimeConflict(v
     this.populate(next);
   }.bind(this), function (_, next) {
     async.parallel({
-      'offering': function (next) {
+      'offering'    : function (next) {
         courses.offering(this.discipline, this.offering, next);
       }.bind(this),
       'requirements': function (next) {
