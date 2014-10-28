@@ -280,45 +280,32 @@ schema.path('offering').validate(function validateIfDisciplineOfferingExists(val
 schema.path('discipline').validate(function validateDisciplineRequirement(value, next) {
   'use strict';
 
-  courses.discipline(this.discipline, function (error, discipline) {
-    if (error) {
-      error = new VError(error, 'Error when trying to get the discipline');
-      return next(error);
-    }
-
-    if (!discipline) {
-      return next(false);
-    }
-
+  async.waterfall([function (next) {
     this.populate('enrollment');
-    this.populate(function () {
-      var user = this.enrollment.user;
-      history.histories(user, function (error, histories) {
-        if (error) {
-          error = new VError(error, 'Error when trying to get the histories');
-          return next(error);
-        }
-
-        if (!histories) {
-          return next(false);
-        }
-
-        async.every(histories, function (userHistory) {
-          if (discipline.requirements.length > 0) {
-            discipline.requirements.forEach(function (disciplineRequirement) {
-              history.discipline(user, userHistory.year, disciplineRequirement.code, function (error, disciplineHistory) {
-                next(!error && !!disciplineHistory &&
-                [1, 2, 3, 4, 7, 10, 11, 12, 13, 14, 15, 16, 20].lastIndexOf(disciplineHistory.status) > -1);
-              }.bind(this));
-            }.bind(this));
-          }
-          else {
-            next();
-          }
-        }.bind(this), next);
-      }.bind(this));
-    }.bind(this));
-  }.bind(this));
+    this.populate(next);
+  }.bind(this), function (_, next) {
+    async.parallel({
+      'discipline': function (next) {
+        courses.discipline(this.discipline, next);
+      }.bind(this),
+      'histories' : function (next) {
+        history.histories(this.enrollment.user, next);
+      }.bind(this)
+    }, next);
+  }.bind(this), function (data, next) {
+    async.every(data.histories, function (userHistory) {
+      if (data.discipline.requirements.length > 0) {
+        data.discipline.requirements.forEach(function (disciplineRequirement) {
+          history.discipline(this.enrollment.user, userHistory.year, disciplineRequirement.code, function (error, disciplineHistory) {
+            next(!!error || (disciplineHistory && [1, 2, 3, 4, 7, 10, 11, 12, 13, 14, 15, 16, 20].lastIndexOf(disciplineHistory.status) > -1));
+          }.bind(this));
+        }.bind(this));
+      }
+      else {
+        next();
+      }
+    }.bind(this), next);
+  }.bind(this)], next);
 }, 'discipline requirement not fulfilled');
 
 
@@ -335,7 +322,6 @@ schema.path('status').validate(function validateIfRequirementCanBeQuit(value, ne
     next();
   }
 }, 'outside of discipline quit period');
-
 
 schema.path('discipline').validate(function validateDisciplineApproval(value, next) {
   'use strict';
