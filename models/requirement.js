@@ -154,20 +154,7 @@ function getDisciplineInformation(enrollment, discipline, disciplineOffering, ne
 
   history.currentHistory(enrollment.user, function (error, currentHistory) {
 
-    if (error) {
-      error = new VError(error, 'Error when trying to get the history');
-      return next(error);
-    }
-
-    if (!currentHistory) {
-      return next(false);
-    }
-
     courses.blocks(currentHistory.year, currentHistory.course + ' ' + currentHistory.modality, function (error, blocks) {
-      if (error) {
-        return next('');
-      }
-
       async.some(blocks, function(block) {
 
         courses.requirement(currentHistory.year, currentHistory.course + ' ' + currentHistory.modality, block.code, this.discipline, function (error, requirement) {
@@ -183,28 +170,29 @@ function getDisciplineInformation(enrollment, discipline, disciplineOffering, ne
               currentSemester = currentDate.getDay() < 15 ? 1 : 2;
             }
 
-            //TODO figure out how to get the offering reservation
+            courses.offering(this.discipline, this.offering, function foundDisciplineOffering(error, offering) {
 
-            var userSemester = (currentDate.getFullYear() - currentHistory.year) * 2 + currentSemester;
-            //var offeringReservations = disciplineOffering && disciplineOffering.reservations || [];
+              var userSemester = (currentDate.getFullYear() - currentHistory.year) * 2 + currentSemester;
+              var offeringReservations = offering && offering.reservations || [];
 
-            blockType = block.type;
-            //isAhead = offeringReservations.some(function (offeringReservation) { return offeringReservation === historyId; });
-            isReserved = requirement && (userSemester < requirement.suggestedSemester);
-
-            //requirement.code
-
-            next(true);
+              blockType = block.type;
+              isAhead = offeringReservations.some(function (offeringReservation) {
+                return offeringReservation.course === currentHistory.course
+                && (!offeringReservation.year || offeringReservation.year === currentHistory.year);
+              });
+              isReserved = requirement && (userSemester < requirement.suggestedSemester);
+              next(true);
+            }.bind(this));
           }
           else {
             next(false);
           }
-        });
-      }, function(result) {
+        }.bind(this));
+      }.bind(this), function(result) {
         next(blockType, isAhead, isReserved);
       });
-    });
-  });
+    }.bind(this));
+  }.bind(this));
 }
 
 /**
