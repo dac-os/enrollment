@@ -55,8 +55,17 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA111').times(Infinity).reply(2
   code: 'MA111',
   name: 'Calculo 1',
   credits: 6,
-  department: 'IMMEC',
+  department: 'IMECC',
   description: 'Calculo 1',
+  requirements: []
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MA141').times(Infinity).reply(200, {
+  code: 'MA141',
+  name: 'Geometria Analítica e Vetores',
+  credits: 4,
+  department: 'IMECC',
+  description: 'Geometria Analítica e Vetores',
   requirements: []
 });
 
@@ -120,18 +129,36 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA111/offerings/2014-1-A').time
   ]
 });
 
+nock(nconf.get('COURSES_URI')).get('/disciplines/MA141/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'      : 'MA141',
+  'year'      : '2014',
+  'period'    : '1',
+  'schedules' : [
+    {
+      'weekday' : 2,
+      'hour'    : 14,
+      'room'    : 'CB05'
+    },
+    {
+      'weekday' : 4,
+      'hour'    : 20,
+      'room'    : 'CB05'
+    }
+  ]
+});
+
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-B').times(Infinity).reply(200, {
   'code'      : 'MC202',
   'year'      : '2014',
   'period'    : '1',
   'schedules' : [
     {
-      'weekday' : 3,
+      'weekday' : 4,
       'hour'    : 14,
       'room'    : 'CC02'
     },
     {
-      'weekday' : 5,
+      'weekday' : 6,
       'hour'    : 16,
       'room'    : 'CC02'
     }
