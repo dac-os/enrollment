@@ -82,118 +82,120 @@ schema.pre('save', function setPriorityScore(next) {
 
   var priorityScore;
 
-  this.populate('enrollment');
-  this.populate(function () {
-    getDisciplineInformation(this.enrollment, this.discipline, this.offering, function (blockType, isAhead, isReserved) {
+  async.waterfall([function (next) {
+    this.populate('enrollment');
+    this.populate(next);
+  }.bind(this), function (_, next) {
+    var blockType , isAhead, isReserved;
 
-      // Calculating priority score
-      if (blockType === 'required') {
-        // Obligatory discipline
-        if (isAhead) {
-          if (isReserved) {
-            priorityScore = 6;
-          } else {
-            priorityScore = 3;
-          }
+    blockType = 'optional';
+    isAhead = false;
+    isReserved = false;
+
+    history.currentHistory(this.enrollment.user, function (error, currentHistory) {
+
+      courses.blocks(currentHistory.year, currentHistory.course + ' ' + currentHistory.modality, function (error, blocks) {
+        async.some(blocks, function(block) {
+
+          courses.requirement(currentHistory.year, currentHistory.course + ' ' + currentHistory.modality, block.code, this.discipline, function (error, requirement) {
+            if (requirement) {
+              var currentDate = new Date();
+
+              var currentSemester;
+              if (currentDate.getMonth() < 6) {
+                currentSemester = 1;
+              } else if(currentDate.getMonth() > 6) {
+                currentSemester = 2;
+              } else {
+                currentSemester = currentDate.getDay() < 15 ? 1 : 2;
+              }
+
+              courses.offering(this.discipline, this.offering, function foundDisciplineOffering(error, offering) {
+
+                var userSemester = (currentDate.getFullYear() - currentHistory.year) * 2 + currentSemester;
+                var offeringReservations = offering && offering.reservations || [];
+
+                blockType = block.type;
+                isAhead = offeringReservations.some(function (offeringReservation) {
+                  return offeringReservation.course === currentHistory.course
+                  && (!offeringReservation.year || offeringReservation.year === currentHistory.year);
+                });
+                isReserved = requirement && (userSemester < requirement.suggestedSemester);
+                next(true);
+              }.bind(this));
+            }
+            else {
+              next(false);
+            }
+          }.bind(this));
+        }.bind(this), function(result) {
+          next(null, blockType, isAhead, isReserved);
+        });
+      }.bind(this));
+    }.bind(this));
+    /*async.parallel({
+      'discipline': function (next) {
+        courses.discipline(this.discipline, next);
+      }.bind(this),
+      'histories' : function (next) {
+        history.histories(this.enrollment.user, next);
+      }.bind(this)
+    }, next);*/
+  }.bind(this), function (blockType, isAhead, isReserved, next) {
+    // Calculating priority score
+    if (blockType === 'required') {
+      // Obligatory discipline
+      if (isAhead) {
+        if (isReserved) {
+          priorityScore = 6;
         } else {
-          if (isReserved) {
-            priorityScore = 9;
-          } else {
-            priorityScore = 7;
-          }
+          priorityScore = 3;
         }
-      } else if (blockType === 'optional') {
-        // Optional discipline
-        if (isAhead) {
-          if (isReserved) {
-            priorityScore = 5;
-          } else {
-            priorityScore = 2;
-          }
+      } else {
+        if (isReserved) {
+          priorityScore = 9;
         } else {
-          if (isReserved) {
-            priorityScore = 8;
-          } else {
-            priorityScore = 4;
-          }
-        }
-      } else if (blockType === 'extra') {
-        // Extra-curricular discipline
-        if (isAhead) {
-          if (isReserved) {
-            priorityScore = 1;
-          } else {
-            priorityScore = 0;
-          }
-        } else {
-          // TODO check why this is equal to the last conditional
-          if (isReserved) {
-            priorityScore = 1;
-          } else {
-            priorityScore = 0;
-          }
+          priorityScore = 7;
         }
       }
+    } else if (blockType === 'optional') {
+      // Optional discipline
+      if (isAhead) {
+        if (isReserved) {
+          priorityScore = 5;
+        } else {
+          priorityScore = 2;
+        }
+      } else {
+        if (isReserved) {
+          priorityScore = 8;
+        } else {
+          priorityScore = 4;
+        }
+      }
+    } else if (blockType === 'extra') {
+      // Extra-curricular discipline
+      if (isAhead) {
+        if (isReserved) {
+          priorityScore = 1;
+        } else {
+          priorityScore = 0;
+        }
+      } else {
+        // TODO check why this is equal to the last conditional
+        if (isReserved) {
+          priorityScore = 1;
+        } else {
+          priorityScore = 0;
+        }
+      }
+    }
 
-      this.priority = priorityScore;
-      //console.log(this.priority);
-
-      next();
-    }.bind(this));
-  }.bind(this));
+    this.priority = priorityScore;
+    //console.log(this.priority);
+    next();
+  }.bind(this)], next);
 });
-
-function getDisciplineInformation(enrollment, discipline, disciplineOffering, next) {
-  'use strict';
-
-  var blockType , isAhead, isReserved;
-
-  blockType = 'optional';
-  isAhead = false;
-  isReserved = false;
-
-  history.currentHistory(enrollment.user, function (error, currentHistory) {
-
-    courses.blocks(currentHistory.year, currentHistory.course + ' ' + currentHistory.modality, function (error, blocks) {
-      async.some(blocks, function(block) {
-
-        courses.requirement(currentHistory.year, currentHistory.course + ' ' + currentHistory.modality, block.code, this.discipline, function (error, requirement) {
-          if (requirement) {
-            var currentDate = new Date();
-
-            var currentSemester;
-            if (currentDate.getMonth() < 6) {
-              currentSemester = 1;
-            } else if(currentDate.getMonth() > 6) {
-              currentSemester = 2;
-            } else {
-              currentSemester = currentDate.getDay() < 15 ? 1 : 2;
-            }
-
-            courses.offering(this.discipline, this.offering, function foundDisciplineOffering(error, offering) {
-
-              var userSemester = (currentDate.getFullYear() - currentHistory.year) * 2 + currentSemester;
-              var offeringReservations = offering && offering.reservations || [];
-
-              blockType = block.type;
-              isAhead = offeringReservations.some(function (offeringReservation) {
-                return offeringReservation.course === currentHistory.course
-                && (!offeringReservation.year || offeringReservation.year === currentHistory.year);
-              });
-              isReserved = requirement && (userSemester < requirement.suggestedSemester);
-              next(true);
-            }.bind(this));
-          }
-          else {
-            next(false);
-          }
-        }.bind(this));
-      }.bind(this), function(result) {
-        next(blockType, isAhead, isReserved);
-      });
-    }.bind(this));
-  }.bind(this));
-}
 
 /**
  * Verifica se uma solicitação de aumento de limite de créditos deve ser aberta
