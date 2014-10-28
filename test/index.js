@@ -158,6 +158,7 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/CE738/offerings/2014-1-A').time
 
 
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-F').times(Infinity).reply(404);
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-F').times(Infinity).reply(404);
 
 nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA').times(Infinity).reply(200, {
   'code'        : 'AA',
@@ -178,6 +179,15 @@ nock(nconf.get('HISTORY_URI')).get('/users/111111/histories?page=0').times(Infin
 nock(nconf.get('HISTORY_URI')).get('/users/111111/histories/2014/disciplines/MC202').times(Infinity).reply(200, {
   status: 5
 });
+
+/* Expected 404 Errors */
+// All courses that a student is trying to enroll in should not exist in his history, so that
+// error 'user was already approved on discipline' does not trigger
+nock(nconf.get('HISTORY_URI')).get('/users/111111/histories/2014/disciplines/MC102').times(Infinity).reply(404);
+nock(nconf.get('HISTORY_URI')).get('/users/111111/histories/2014/disciplines/MC302').times(Infinity).reply(404);
+nock(nconf.get('HISTORY_URI')).get('/users/111111/histories/2014/disciplines/MA111').times(Infinity).reply(404);
+
+/* End of Expected 404 Errors */
 
 nock(nconf.get('HISTORY_URI')).get('/users/111111/histories/2014/disciplines/CE738').times(Infinity).reply(200, {
   status: 4

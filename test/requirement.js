@@ -129,6 +129,7 @@ describe('requirement controller', function () {
       request.send({'offering' : '2014-1-A'});
       request.expect(400);
       request.expect(function (response) {
+        console.log(response.body);
         response.body.should.have.property('discipline').be.equal('user was already approved on discipline');
       });
       request.end(done);
