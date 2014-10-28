@@ -208,65 +208,55 @@ function getDisciplineInformation(enrollment, discipline, disciplineOffering, ne
 }
 
 /**
- * verifica se uma solicitação de aumento de limite de créditos deve ser aberta
+ * Verifica se uma solicitação de aumento de limite de créditos deve ser aberta
  */
 schema.pre('save', function openCreditRaiseRequestIfNecessary(next) {
   'use strict';
 
-  this.populate('enrollment');
-  this.populate(function () {
-    var user = this.enrollment.user;
-    history.currentHistory(user, function (error, currentHistory) {
-      if (error) {
-        error = new VError(error, 'Error when trying to get the history');
-        return next(error);
-      }
-
-      if (!currentHistory) {
-        return next(false);
-      }
-
-      courses.modality(currentHistory.year, currentHistory.course + '-' + currentHistory.modality, function (error, modality) {
-        if (error) {
-          error = new VError(error, 'Error when trying to get the modality');
-          return next(error);
-        }
-
-        if (!modality) {
-          return next(new VError(error, 'Modality not found'));
-        }
-
+  async.waterfall([function (next) {
+    this.populate('enrollment');
+    this.populate(next);
+  }.bind(this), function (_, next) {
+    async.parallel({
+      'requirements': function (next) {
         var query;
         query = this.model('Requirement').find();
         query.where('enrollment').equals(this.enrollment._id);
         query.where('_id').ne(this._id);
-        query.exec(function foundRequirements(error, requirements) {
-          requirements.push(this);
+        query.exec(next);
+      }.bind(this),
+      'modality'   : function (next) {
+        async.waterfall([function (next) {
+          history.currentHistory(this.enrollment.user, next);
+        }.bind(this), function (currentHistory, next) {
+          courses.modality(currentHistory.year, currentHistory.course + '-' + currentHistory.modality, next);
+        }.bind(this)], next);
+      }.bind(this)
+    }, next);
+  }.bind(this), function (data, next) {
+    // sum the actual requirement together with all other requirements
+    data.requirements.push(this);
 
-          async.reduce(requirements, 0, function (sum, disciplineRequirement, next) {
-            courses.discipline(disciplineRequirement.discipline, function (error, discipline) {
-              next(error, discipline ? discipline.credits + sum : 0);
-            }.bind(this));
-          }.bind(this), function (error, credits) {
-            if (error) {
-              error = new VError(error, 'Error when trying to sum the credits');
-              return next(error);
-            }
-
-            if (credits > modality.creditLimit) {
-              this.enrollment.creditRaiseRequest.credits = credits;
-              this.enrollment.creditRaiseRequest.date = new Date();
-              this.enrollment.creditRaiseRequest.status = 'pending';
-              this.enrollment.save(next);
-            }
-            else {
-              next();
-            }
-          }.bind(this));
-        }.bind(this));
+    async.reduce(data.requirements, 0, function (sum, disciplineRequirement, next) {
+      courses.discipline(disciplineRequirement.discipline, function (error, discipline) {
+        next(error, discipline ? discipline.credits + sum : 0);
       }.bind(this));
+    }.bind(this), function (error, credits) {
+      if (error) {
+        error = new VError(error, 'Error when trying to sum the credits');
+        return next(error);
+      }
+
+      if (credits <= data.modality.creditLimit) {
+        return next();
+      }
+
+      this.enrollment.creditRaiseRequest.credits = credits;
+      this.enrollment.creditRaiseRequest.date = new Date();
+      this.enrollment.creditRaiseRequest.status = 'pending';
+      this.enrollment.save(next);
     }.bind(this));
-  }.bind(this));
+  }.bind(this)], next);
 });
 
 schema.path('offering').validate(function validateIfDisciplineOfferingExists(value, next) {
@@ -307,7 +297,6 @@ schema.path('discipline').validate(function validateDisciplineRequirement(value,
     }.bind(this), next);
   }.bind(this)], next);
 }, 'discipline requirement not fulfilled');
-
 
 schema.path('status').validate(function validateIfRequirementCanBeQuit(value, next) {
   'use strict';
