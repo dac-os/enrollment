@@ -136,7 +136,7 @@ schema.pre('save', function setPriorityScore(next) {
       }
 
       this.priority = priorityScore;
-      console.log(this.priority);
+      //console.log(this.priority);
 
       next();
     }.bind(this));
@@ -280,7 +280,6 @@ schema.path('offering').validate(function validateIfDisciplineOfferingExists(val
 schema.path('discipline').validate(function validateDisciplineRequirement(value, next) {
   'use strict';
 
-  // TODO check this validation
   courses.discipline(this.discipline, function (error, discipline) {
     if (error) {
       error = new VError(error, 'Error when trying to get the discipline');
@@ -304,7 +303,7 @@ schema.path('discipline').validate(function validateDisciplineRequirement(value,
           return next(false);
         }
 
-        histories.forEach(function (userHistory) {
+        async.every(histories, function (userHistory) {
           if (discipline.requirements.length > 0) {
             discipline.requirements.forEach(function (disciplineRequirement) {
               history.discipline(user, userHistory.year, disciplineRequirement.code, function (error, disciplineHistory) {
@@ -316,7 +315,7 @@ schema.path('discipline').validate(function validateDisciplineRequirement(value,
           else {
             next();
           }
-        }.bind(this));
+        }.bind(this), next);
       }.bind(this));
     }.bind(this));
   }.bind(this));
@@ -366,52 +365,37 @@ schema.path('discipline').validate(function validateDisciplineApproval(value, ne
 schema.path('offering').validate(function validateIfRequirementHasTimeConflict(value, next) {
   'use strict';
 
-  this.populate('enrollment');
-  this.populate(function () {
+  async.waterfall([function (next) {
+    this.populate('enrollment');
+    this.populate(next);
+  }.bind(this), function (_, next) {
+    async.parallel({
+      'offering': function (next) {
+        courses.offering(this.discipline, this.offering, next);
+      }.bind(this),
+      'requirements': function (next) {
+        var query;
 
-    courses.offering(this.discipline, this.offering, function foundDisciplineOffering(error, offering) {
-      if (error) {
-        error = new VError(error, 'Error when trying to get the discipline offering');
-        return next(error);
-      }
-
-      if (!offering) {
-        return next(false);
-      }
-
-      var query;
-      query = this.model('Requirement').find();
-      query.where('enrollment').equals(this.enrollment._id);
-      query.where('_id').ne(this._id);
-      query.exec(function foundRequirements(error, requirements) {
-        async.every(requirements, function (disciplineRequirement, next) {
-          courses.offering(disciplineRequirement.discipline, disciplineRequirement.offering, function foundDisciplineOffering(error, offeringConflict) {
-            if (error) {
-              error = new VError(error, 'Error when trying to get discipline offering');
-              return next(error);
-            }
-
-            if (!offeringConflict) {
-              return next(false);
-            }
-
-            // throw an error with equal discipline in another validation
-            if (offeringConflict.code == offering.code) {
-              return next(true);
-            }
-
-            var conflict = offering.schedules.some(function (schedule) {
-              return offeringConflict.schedules.some(function (otherSchedule) {
-                return (schedule.weekday === otherSchedule.weekday && schedule.hour === otherSchedule.hour);
-              });
-            });
-
-            next(!conflict);
+        query = this.model('Requirement').find();
+        query.where('enrollment').equals(this.enrollment._id);
+        query.where('_id').ne(this._id);
+        query.where('discipline').ne(this.discipline);
+        query.exec(next);
+      }.bind(this)
+    }, next);
+  }.bind(this), function (data, next) {
+    async.every(data.requirements, function (requirement, next) {
+      courses.offering(requirement.discipline, requirement.offering, function foundDisciplineOffering(error, offeringConflict) {
+        var conflict = data.offering.schedules.some(function (schedule) {
+          return offeringConflict.schedules.some(function (otherSchedule) {
+            return (schedule.weekday === otherSchedule.weekday && schedule.hour === otherSchedule.hour);
           });
-        }.bind(this), next);
-      }.bind(this));
-    }.bind(this));
-  }.bind(this));
+        });
+
+        next(!!error || !conflict);
+      });
+    }.bind(this), next);
+  }.bind(this)], next);
 }, 'discipline with time conflict');
 
 module.exports = mongoose.model('Requirement', schema);
