@@ -97,6 +97,16 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC102/offerings/2014-1-A').time
   'code'      : 'MC102',
   'year'      : '2014',
   'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : { 
+        'code': '42',
+        'name': 'Ciencia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
   'schedules' : [
     {
       'weekday' : 3,
@@ -115,6 +125,15 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA111/offerings/2014-1-A').time
   'code'      : 'MA111',
   'year'      : '2014',
   'period'    : '1',
+  'reservations': [
+    {
+      'course' : { 
+        'code': '42',
+        'name': 'Ciencia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
   'schedules' : [
     {
       'weekday' : 2,
@@ -133,6 +152,16 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA141/offerings/2014-1-A').time
   'code'      : 'MA141',
   'year'      : '2014',
   'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : { 
+        'code': '42',
+        'name': 'Ciencia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
   'schedules' : [
     {
       'weekday' : 2,
@@ -194,14 +223,74 @@ nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA').times(Infi
 });
 
 
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks?page=0').times(Infinity).reply(200, [
+  {
+    'code': 'visao',
+    'type': 'optional',
+    'credits': 4
+  },
+  {
+    'code': 'nucleo-comum',
+    'type': 'required'
+  },
+  {
+    'code': 'eletivas',
+    'type': 'extra',
+    'credits': 14
+  }
+]);
 
-nock(nconf.get('HISTORY_URI')).get('/users/111111/histories?page=0').times(Infinity).reply(200, {
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks?page=1').times(Infinity).reply(200, []);
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements/MA111').times(Infinity).reply(200, { 
+  discipline: 
+  {
+    code: 'MA111',
+    name: 'Calculo 1',
+    credits: 6,
+    department: 'IMECC',
+    description: 'Calculo 1',
+    requirements: []
+  },
+  "suggestedSemester": 2
+});
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements/MC102').times(Infinity).reply(200, { 
+  discipline: 
+   {
+      code: 'MC102',
+      name: 'Introducao a programacao',
+      credits: 6,
+      department: 'IC',
+      description: 'Introducao a programacao',
+      requirements: []
+    },
+    "suggestedSemester": 1
+});
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements/MC202').times(Infinity).reply(200, { 
+  discipline: 
+  {
+    code: 'MC202',
+    name: 'Estrutura de Dados',
+    credits: 6,
+    department: 'IC',
+    description: 'Estrutura de Dados',
+    requirements: []
+  },
+  "suggestedSemester": 2
+});
+
+
+nock(nconf.get('HISTORY_URI')).get('/users/111111/histories?page=0').times(Infinity).reply(200, [{
   year: 2014,
   course: '42',
   modality: 'AA',
   efficiencyCoefficient: 1,
   courseProgress: 0
-});
+}]);
+
+nock(nconf.get('HISTORY_URI')).get('/users/111111/histories?page=1').times(Infinity).reply(200, []);
 
 nock(nconf.get('HISTORY_URI')).get('/users/111111/histories/2014/disciplines/MC202').times(Infinity).reply(200, {
   status: 5
