@@ -1,13 +1,13 @@
-var VError, async, mongoose, jsonSelect, nconf, courses, calendar, history, Schema, schema;
+var VError, mongoose, jsonSelect, nconf, async, courses, calendar, history, Schema, schema;
 
 VError = require('verror');
-async = require('async');
 mongoose = require('mongoose');
 jsonSelect = require('mongoose-json-select');
+nconf = require('nconf');
+async = require('async');
 courses = require('dacos-courses-driver');
 calendar = require('dacos-calendar-driver');
 history = require('dacos-history-driver');
-nconf = require('nconf');
 Schema = mongoose.Schema;
 
 schema = new Schema({

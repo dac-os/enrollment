@@ -1,9 +1,10 @@
-var VError, mongoose, jsonSelect, nconf, courses, calendar, history, Schema, schema;
+var VError, mongoose, jsonSelect, nconf, async, courses, calendar, history, Schema, schema;
 
 VError = require('verror');
 mongoose = require('mongoose');
 jsonSelect = require('mongoose-json-select');
 nconf = require('nconf');
+async = require('async');
 courses = require('dacos-courses-driver');
 calendar = require('dacos-calendar-driver');
 history = require('dacos-history-driver');
@@ -84,6 +85,22 @@ schema.pre('save', function setEnrollmentUpdatedAt(next) {
 
   this.updatedAt = new Date();
   next();
+});
+
+schema.pre('remove', function deleteCascadeRequirements(next) {
+  'use strict';
+
+  async.waterfall([function (next) {
+    var Requirement, query;
+    Requirement = require('./requirement');
+    query = Requirement.find();
+    query.where('enrollment').equals(this._id);
+    query.exec(next);
+  }.bind(this), function (requirements, next) {
+    async.each(requirements, function (requirement, next) {
+      requirement.remove(next);
+    }.bind(this), next);
+  }.bind(this)], next);
 });
 
 schema.path('createdAt').validate(function validateIfEnrollmentCanBeCreated(value, next) {
