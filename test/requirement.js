@@ -223,6 +223,280 @@ describe('requirement controller', function () {
       });
     });
 
+    describe('with priority score', function () {
+      describe('with reserved disciplines', function () {
+        before(Requirement.remove.bind(Requirement));
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'MC102'});
+          request.send({'offering': '2014-1-A'});
+          request.end(done);
+        });
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'F 128'});
+          request.send({'offering': '2014-1-A'});
+          request.end(done);
+        });
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'MC886'});
+          request.send({'offering': '2014-1-A'});
+          request.end(done);
+        });
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'MC959'});
+          request.send({'offering': '2014-1-A'});
+          request.end(done);
+        });
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'LA122'});
+          request.send({'offering': '2014-1-A'});
+          request.end(done);
+        });
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'BD190'});
+          request.send({'offering': '2014-1-A'});
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 9 for obligatory discipline and not ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(9);
+          });
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 6 for obligatory discipline and ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/F 128-2014-1-A');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(6);
+          });
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 8 for elective discipline and not ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/MC886-2014-1-A');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(8);
+          });
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 5 for elective discipline and ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/MC959-2014-1-A');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(5);
+          });
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 1 for extracurricular discipline and not ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/LA122-2014-1-A');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(1);
+          });
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 1 for extracurricular discipline and ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/BD190-2014-1-A');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(1);
+          });
+          request.end(done);
+        });
+      });
+
+      describe('with not reserved disciplines', function () {
+        before(Requirement.remove.bind(Requirement));
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'MC102'});
+          request.send({'offering': '2014-1-B'});
+          request.end(done);
+        });
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'F 128'});
+          request.send({'offering': '2014-1-B'});
+          request.end(done);
+        });
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'MC886'});
+          request.send({'offering': '2014-1-B'});
+          request.end(done);
+        });
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'MC959'});
+          request.send({'offering': '2014-1-B'});
+          request.end(done);
+        });
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'LA122'});
+          request.send({'offering': '2014-1-B'});
+          request.end(done);
+        });
+
+        before(function (done) {
+          var request;
+          request = supertest(app);
+          request = request.post('/users/111111/enrollments/2014-1/requirements');
+          request.set('csrf-token', 'adminToken');
+          request.send({'discipline': 'BD190'});
+          request.send({'offering': '2014-1-B'});
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 7 for obligatory discipline and not ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-B');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(7);
+          });
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 3 for obligatory discipline and ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/F 128-2014-1-B');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(3);
+          });
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 4 for elective discipline and not ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/MC886-2014-1-B');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(4);
+          });
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 2 for elective discipline and ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/MC959-2014-1-B');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(2);
+          });
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 0 for extracurricular discipline and not ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/LA122-2014-1-B');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(0);
+          });
+          request.end(done);
+        });
+
+        it('should have a discipline with priority score 0 for extracurricular discipline and ahead', function (done) {
+          var request;
+          request = supertest(app);
+          request = request.get('/users/111111/enrollments/2014-1/requirements/BD190-2014-1-B');
+          request.set('csrf-token', 'adminToken');
+          request.expect(200);
+          request.expect(function (response) {
+            response.body.should.have.property('priority').be.equal(0);
+          });
+          request.end(done);
+        });
+      });
+    });
+
     describe('with code taken', function () {
       before(Requirement.remove.bind(Requirement));
 

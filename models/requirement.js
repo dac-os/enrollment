@@ -99,13 +99,9 @@ schema.pre('save', function setPriorityScore(next) {
   }.bind(this), function (currentHistory, offering, blocks, next) {
     var blockType, isAhead, isReserved;
 
-    blockType = 'extra';
-    isAhead = false;
-    isReserved = false;
-
     async.some(blocks, function (block, next) {
-      courses.requirement(currentHistory.year, currentHistory.course + '-' + currentHistory.modality, block.code, this.discipline, function (error, requirement) {
-        if (requirement) {
+      courses.requirement(currentHistory.year, currentHistory.course + '-' + currentHistory.modality, block.code, this.discipline, function (error, courseRequirement) {
+        if (courseRequirement) {
           var currentDate, currentSemester, offeringReservations, userSemester;
           
           currentDate = new Date();
@@ -122,12 +118,12 @@ schema.pre('save', function setPriorityScore(next) {
           offeringReservations = offering && offering.reservations || [];
 
           blockType = block.type;
-          isAhead = offeringReservations.some(function (offeringReservation) {
+          isReserved = offeringReservations.some(function (offeringReservation) {
             return ((offeringReservation.course.code === currentHistory.course)
-              && (offeringReservation.yearCatalog && offeringReservation.yearCatalog > currentHistory.year));
+              && (offeringReservation.yearCatalog && offeringReservation.yearCatalog === currentHistory.year));
           });
 
-          isReserved = requirement && (userSemester < requirement.suggestedSemester);
+          isAhead = courseRequirement && (userSemester < courseRequirement.suggestedSemester);
 
           next(true);
         }
@@ -142,7 +138,7 @@ schema.pre('save', function setPriorityScore(next) {
     var priorityScore;
 
     // Calculating priority score
-    if (blockType === 'required') {
+    if (blockType === 'obligatory') {
       // Obligatory discipline
       if (isAhead) {
         if (isReserved) {
@@ -157,7 +153,7 @@ schema.pre('save', function setPriorityScore(next) {
           priorityScore = 7;
         }
       }
-    } else if (blockType === 'optional') {
+    } else if (blockType === 'elective') {
       // Optional discipline
       if (isAhead) {
         if (isReserved) {
@@ -172,8 +168,8 @@ schema.pre('save', function setPriorityScore(next) {
           priorityScore = 4;
         }
       }
-    } else if (blockType === 'extra') {
-      // Extra-curricular discipline
+    } else if (blockType === 'extracurricular') {
+      // Extracurricular discipline
       if (isAhead) {
         if (isReserved) {
           priorityScore = 1;
@@ -181,7 +177,6 @@ schema.pre('save', function setPriorityScore(next) {
           priorityScore = 0;
         }
       } else {
-        // TODO check why this is equal to the last conditional
         if (isReserved) {
           priorityScore = 1;
         } else {
@@ -191,7 +186,6 @@ schema.pre('save', function setPriorityScore(next) {
     }
 
     this.priority = priorityScore;
-    //console.log(this.priority);
     next();
   }.bind(this)], next);
 });
@@ -300,6 +294,8 @@ schema.path('status').validate(function validateIfRequirementCanBeQuit(value, ne
     next();
   }
 }, 'outside of discipline quit period');
+
+// TODO validar se ja tem um pedido para a disciplina ainda pendente ou aprovado
 
 schema.path('discipline').validate(function validateDisciplineApproval(value, next) {
   'use strict';

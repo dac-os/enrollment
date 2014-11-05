@@ -93,14 +93,59 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/CE738').times(Infinity).reply(2
   requirements: []
 });
 
+nock(nconf.get('COURSES_URI')).get('/disciplines/F%20128').times(Infinity).reply(200, {
+  code: 'F 128',
+  name: 'Física Geral I',
+  credits: 4,
+  department: 'IFGH',
+  description: 'Física Geral I',
+  requirements: []
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC886').times(Infinity).reply(200, {
+  code: 'MC886',
+  name: 'Aprendizado de Máquina',
+  credits: 4,
+  department: 'IC',
+  description: 'Aprendizado de Máquina',
+  requirements: []
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC959').times(Infinity).reply(200, {
+  code: 'MC959',
+  name: 'Tópicos em Inteligência Artificial I',
+  credits: 4,
+  department: 'IC',
+  description: 'Tópicos em Inteligência Artificial I',
+  requirements: []
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/LA122').times(Infinity).reply(200, {
+  code: 'LA122',
+  name: 'Inglês Instrumental I',
+  credits: 4,
+  department: 'CEL',
+  description: 'Inglês Instrumental I',
+  requirements: []
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/BD190').times(Infinity).reply(200, {
+  code: 'BD190',
+  name: 'Participação Cultural I',
+  credits: 2,
+  department: 'IB',
+  description: 'Participação Cultural I',
+  requirements: []
+});
+
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC102/offerings/2014-1-A').times(Infinity).reply(200, {
-  'code'      : 'MC102',
+  'code'      : 'A',
   'year'      : '2014',
   'period'    : '1',
   'reservations': [
     {
       'yearCatalog' : 2014,
-      'course' : { 
+      'course' : {
         'code': '42',
         'name': 'Ciencia da computação',
         'level': 'GRAD'
@@ -121,13 +166,42 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC102/offerings/2014-1-A').time
   ]
 });
 
-nock(nconf.get('COURSES_URI')).get('/disciplines/MA111/offerings/2014-1-A').times(Infinity).reply(200, {
-  'code'      : 'MA111',
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC102/offerings/2014-1-B').times(Infinity).reply(200, {
+  'code'      : 'B',
   'year'      : '2014',
   'period'    : '1',
   'reservations': [
     {
-      'course' : { 
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '34',
+        'name': 'Engenharia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 14,
+      'room'    : 'CC02'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 16,
+      'room'    : 'CC02'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MA111/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'      : 'A',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
         'code': '42',
         'name': 'Ciencia da computação',
         'level': 'GRAD'
@@ -149,13 +223,13 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA111/offerings/2014-1-A').time
 });
 
 nock(nconf.get('COURSES_URI')).get('/disciplines/MA141/offerings/2014-1-A').times(Infinity).reply(200, {
-  'code'      : 'MA141',
+  'code'      : 'A',
   'year'      : '2014',
   'period'    : '1',
   'reservations': [
     {
       'yearCatalog' : 2014,
-      'course' : { 
+      'course' : {
         'code': '42',
         'name': 'Ciencia da computação',
         'level': 'GRAD'
@@ -177,9 +251,19 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MA141/offerings/2014-1-A').time
 });
 
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-B').times(Infinity).reply(200, {
-  'code'      : 'MC202',
+  'code'      : 'B',
   'year'      : '2014',
   'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '34',
+        'name': 'Engenharia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
   'schedules' : [
     {
       'weekday' : 4,
@@ -195,9 +279,19 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-B').time
 });
 
 nock(nconf.get('COURSES_URI')).get('/disciplines/CE738/offerings/2014-1-A').times(Infinity).reply(200, {
-  'code'      : 'CE738',
+  'code'      : 'A',
   'year'      : '2014',
   'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '42',
+        'name': 'Ciencia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
   'schedules' : [
     {
       'weekday' : 3,
@@ -207,6 +301,287 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/CE738/offerings/2014-1-A').time
     {
       'weekday' : 5,
       'hour'    : 21,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/F%20128/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'      : 'A',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '42',
+        'name': 'Ciencia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 19,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 21,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/F%20128/offerings/2014-1-B').times(Infinity).reply(200, {
+  'code'      : 'B',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '34',
+        'name': 'Engenharia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 19,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 21,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC886/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'      : 'A',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '42',
+        'name': 'Ciencia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 8,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 8,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC886/offerings/2014-1-B').times(Infinity).reply(200, {
+  'code'      : 'B',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '34',
+        'name': 'Engenharia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 8,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 8,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC959/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'      : 'A',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '42',
+        'name': 'Ciencia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 10,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 10,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC959/offerings/2014-1-B').times(Infinity).reply(200, {
+  'code'      : 'B',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '34',
+        'name': 'Engenharia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 10,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 10,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/LA122/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'      : 'A',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '42',
+        'name': 'Ciencia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 2,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 2,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/LA122/offerings/2014-1-B').times(Infinity).reply(200, {
+  'code'      : 'B',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '34',
+        'name': 'Engenharia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 2,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 2,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/BD190/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'      : 'A',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '42',
+        'name': 'Ciencia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 4,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 4,
+      'room'    : 'CB18'
+    }
+  ]
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/BD190/offerings/2014-1-B').times(Infinity).reply(200, {
+  'code'      : 'B',
+  'year'      : '2014',
+  'period'    : '1',
+  'reservations': [
+    {
+      'yearCatalog' : 2014,
+      'course' : {
+        'code': '34',
+        'name': 'Engenharia da computação',
+        'level': 'GRAD'
+      }
+    }
+  ],
+  'schedules' : [
+    {
+      'weekday' : 3,
+      'hour'    : 4,
+      'room'    : 'CB18'
+    },
+    {
+      'weekday' : 5,
+      'hour'    : 4,
       'room'    : 'CB18'
     }
   ]
@@ -226,24 +601,24 @@ nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA').times(Infi
 nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks?page=0').times(Infinity).reply(200, [
   {
     'code': 'visao',
-    'type': 'optional',
+    'type': 'elective',
     'credits': 4
   },
   {
     'code': 'nucleo-comum',
-    'type': 'required'
+    'type': 'obligatory'
   },
   {
-    'code': 'eletivas',
-    'type': 'extra',
+    'code': 'extracurriculares',
+    'type': 'extracurricular',
     'credits': 14
   }
 ]);
 
 nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks?page=1').times(Infinity).reply(200, []);
 
-nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements/MA111').times(Infinity).reply(200, { 
-  discipline: 
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements/MA111').times(Infinity).reply(200, {
+  discipline:
   {
     code: 'MA111',
     name: 'Calculo 1',
@@ -255,8 +630,8 @@ nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucle
   "suggestedSemester": 2
 });
 
-nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements/MC102').times(Infinity).reply(200, { 
-  discipline: 
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements/MC102').times(Infinity).reply(200, {
+  discipline:
    {
       code: 'MC102',
       name: 'Introducao a programacao',
@@ -268,14 +643,79 @@ nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucle
     "suggestedSemester": 1
 });
 
-nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements/MC202').times(Infinity).reply(200, { 
-  discipline: 
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements/MC202').times(Infinity).reply(200, {
+  discipline:
   {
     code: 'MC202',
     name: 'Estrutura de Dados',
     credits: 6,
     department: 'IC',
     description: 'Estrutura de Dados',
+    requirements: []
+  },
+  "suggestedSemester": 2
+});
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements/F%20128').times(Infinity).reply(200, {
+  discipline:
+  {
+    code: 'F 128',
+    name: 'Física Geral I',
+    credits: 4,
+    department: 'IFGH',
+    description: 'Física Geral I',
+    requirements: []
+  },
+  "suggestedSemester": 2
+});
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/visao/requirements/MC886').times(Infinity).reply(200, {
+  discipline:
+  {
+    code: 'MC886',
+    name: 'Aprendizado de Máquina',
+    credits: 4,
+    department: 'IC',
+    description: 'Aprendizado de Máquinas',
+    requirements: []
+  },
+  "suggestedSemester": 1
+});
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/visao/requirements/MC959').times(Infinity).reply(200, {
+  discipline:
+  {
+    code: 'MC959',
+    name: 'Tópicos em Inteligência Artificial I',
+    credits: 4,
+    department: 'IC',
+    description: 'Tópicos em Inteligência Artificial I',
+    requirements: []
+  },
+  "suggestedSemester": 2
+});
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/extracurriculares/requirements/LA122').times(Infinity).reply(200, {
+  discipline:
+  {
+    code: 'LA122',
+    name: 'Inglês Instrumental I',
+    credits: 4,
+    department: 'IC',
+    description: 'Inglês Instrumental I',
+    requirements: []
+  },
+  "suggestedSemester": 1
+});
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/extracurriculares/requirements/BD190').times(Infinity).reply(200, {
+  discipline:
+  {
+    code: 'BD190',
+    name: 'Participação Cultural I',
+    credits: 2,
+    department: 'IB',
+    description: 'Participação Cultural I',
     requirements: []
   },
   "suggestedSemester": 2
@@ -350,9 +790,6 @@ nock(nconf.get('CALENDAR_URI')).get('/calendars/2014/events/discipline-quit-ends
   'date'        : new Date('2014-10-15'),
   'description' : 'Dia em que nao é mais possivel fazer um pedido de desistencia de disciplina'
 });
-
-
-
 
 it('should raise server', function (done) {
   'use strict';
