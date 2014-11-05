@@ -193,33 +193,33 @@ describe('requirement controller', function () {
         });
         request.end(done);
       });
+    });
 
-      describe('with discipline offering', function () {
-        before(Requirement.remove.bind(Requirement));
+    describe('with discipline offering', function () {
+      before(Requirement.remove.bind(Requirement));
 
-        before(function (done) {
-          var request;
-          request = supertest(app);
-          request = request.post('/users/111111/enrollments/2014-1/requirements');
-          request.set('csrf-token', 'adminToken');
-          request.send({'discipline' : 'MA111'});
-          request.send({'offering' : '2014-1-A'});
-          request.end(done);
+      before(function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MA111'});
+        request.send({'offering' : '2014-1-A'});
+        request.end(done);
+      });
+
+      it('should raise an error when there is a time conflict', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MA141'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('offering').be.equal('discipline with time conflict');
         });
-
-        it('should raise an error when there is a time conflict', function (done) {
-          var request;
-          request = supertest(app);
-          request = request.post('/users/111111/enrollments/2014-1/requirements');
-          request.set('csrf-token', 'adminToken');
-          request.send({'discipline' : 'MA141'});
-          request.send({'offering' : '2014-1-A'});
-          request.expect(400);
-          request.expect(function (response) {
-            response.body.should.have.property('offering').be.equal('discipline with time conflict');
-          });
-          request.end(done);
-        });
+        request.end(done);
       });
     });
 

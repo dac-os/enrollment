@@ -295,8 +295,6 @@ schema.path('status').validate(function validateIfRequirementCanBeQuit(value, ne
   }
 }, 'outside of discipline quit period');
 
-// TODO validar se ja tem um pedido para a disciplina ainda pendente ou aprovado
-
 schema.path('discipline').validate(function validateDisciplineApproval(value, next) {
   'use strict';
 
