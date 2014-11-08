@@ -10,7 +10,7 @@ referenceDate = new Date('2014-07-11');
 describe('enrollment controller', function () {
   'use strict';
 
-  before(function(done) {
+  before(function (done) {
     timekeeper.travel(referenceDate);
     done();
   });
@@ -18,117 +18,139 @@ describe('enrollment controller', function () {
   describe('create', function () {
     before(Enrollment.remove.bind(Enrollment));
 
-    it('should raise error without token', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments');
-      request.send({'year' : 2014});
-      request.send({'period' : '1'});
-      request.expect(403);
-      request.end(done);
-    });
-
-    it('should raise error without changeEnrollment permission', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments');
-      request.set('csrf-token', 'userToken');
-      request.send({'year' : 2014});
-      request.send({'period' : '1'});
-      request.expect(403);
-      request.end(done);
-    });
-
-    it('should raise error without year', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments');
-      request.set('csrf-token', 'adminToken');
-      request.send({'period' : '1'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('year').be.equal('required');
+    describe('without token', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments');
+        request.send({'year' : 2014});
+        request.send({'period' : '1'});
+        request.expect(403);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error without period', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments');
-      request.set('csrf-token', 'adminToken');
-      request.send({'year' : 2014});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('period').be.equal('required');
+    describe('without changeEnrollment permission', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments');
+        request.set('csrf-token', 'userToken');
+        request.send({'year' : 2014});
+        request.send({'period' : '1'});
+        request.expect(403);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error without year and period', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments');
-      request.set('csrf-token', 'adminToken');
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('year').be.equal('required');
-        response.body.should.have.property('period').be.equal('required');
+    describe('without year', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments');
+        request.set('csrf-token', 'adminToken');
+        request.send({'period' : '1'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('year').be.equal('required');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error before enrollment period starts', function (done) {
-      var request, time;
+    describe('without period', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments');
+        request.set('csrf-token', 'adminToken');
+        request.send({'year' : 2014});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('period').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
 
-      time = new Date('2014-02-01');
-      timekeeper.travel(time);
+    describe('without year and period', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments');
+        request.set('csrf-token', 'adminToken');
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('year').be.equal('required');
+          response.body.should.have.property('period').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
 
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments');
-      request.set('csrf-token', 'adminToken');
-      request.send({'year' : 2013});
-      request.send({'period' : '1'});
-      request.expect(function() {
+    describe('before enrollment period starts', function () {
+      before(function () {
+        var time;
+        time = new Date('2014-02-01');
+        timekeeper.travel(time);
+      });
+
+      after(function () {
         timekeeper.travel(referenceDate);
       });
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('createdAt').be.equal('outside the enrollment period');
+
+      it('should raise error ', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments');
+        request.set('csrf-token', 'adminToken');
+        request.send({'year' : 2013});
+        request.send({'period' : '1'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('createdAt').be.equal('outside the enrollment period');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error when enrollment period has already ended', function (done) {
-      var request, time;
+    describe('after enrollment period ended', function () {
+      before(function () {
+        var time;
+        time = new Date('2014-12-30');
+        timekeeper.travel(time);
+      });
 
-      time = new Date('2014-12-30');
-      timekeeper.travel(time);
-
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments');
-      request.set('csrf-token', 'adminToken');
-      request.send({'year' : 2013});
-      request.send({'period' : '1'});
-      request.expect(function() {
+      after(function () {
         timekeeper.travel(referenceDate);
       });
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('createdAt').be.equal('outside the enrollment period');
+
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments');
+        request.set('csrf-token', 'adminToken');
+        request.send({'year' : 2013});
+        request.send({'period' : '1'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('createdAt').be.equal('outside the enrollment period');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should create', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments');
-      request.set('csrf-token', 'adminToken');
-      request.send({'year' : 2014});
-      request.send({'period' : '1'});
-      request.expect(201);
-      request.end(done);
+    describe('with valid credentials, year, period, after enrollment period starts and before enrollment period ends', function () {
+      it('should create', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments');
+        request.set('csrf-token', 'adminToken');
+        request.send({'year' : 2014});
+        request.send({'period' : '1'});
+        request.expect(201);
+        request.end(done);
+      });
     });
 
     describe('with code taken', function () {
@@ -160,41 +182,43 @@ describe('enrollment controller', function () {
   describe('list', function () {
     before(Enrollment.remove.bind(Enrollment));
 
-    before(function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments');
-      request.set('csrf-token', 'adminToken');
-      request.send({'year' : 2014});
-      request.send({'period' : '1'});
-      request.end(done);
-    });
+    describe('with one in database', function () {
+      before(function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments');
+        request.set('csrf-token', 'adminToken');
+        request.send({'year' : 2014});
+        request.send({'period' : '1'});
+        request.end(done);
+      });
 
-    it('should list', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/enrollments');
-      request.expect(200);
-      request.expect(function (response) {
-        response.body.should.be.instanceOf(Array).with.lengthOf(1);
-        response.body.every(function (enrollment) {
-          enrollment.should.have.property('year');
-          enrollment.should.have.property('period');
+      it('should list 1 in first page', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/enrollments');
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.be.instanceOf(Array).with.lengthOf(1);
+          response.body.every(function (enrollment) {
+            enrollment.should.have.property('year');
+            enrollment.should.have.property('period');
+          });
         });
+        request.end(done);
       });
-      request.end(done);
-    });
 
-    it('should return empty in second page', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/enrollments');
-      request.send({'page' : 1});
-      request.expect(200);
-      request.expect(function (response) {
-        response.body.should.be.instanceOf(Array).with.lengthOf(0);
+      it('should return empty in second page', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/enrollments');
+        request.send({'page' : 1});
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.be.instanceOf(Array).with.lengthOf(0);
+        });
+        request.end(done);
       });
-      request.end(done);
     });
   });
 
@@ -211,24 +235,28 @@ describe('enrollment controller', function () {
       request.end(done);
     });
 
-    it('should raise error with 2012-invalid code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/enrollments/2012-invalid');
-      request.expect(404);
-      request.end(done);
+    describe('without valid code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/enrollments/2012-invalid');
+        request.expect(404);
+        request.end(done);
+      });
     });
 
-    it('should show', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/enrollments/2014-1');
-      request.expect(200);
-      request.expect(function (response) {
-        response.body.should.have.property('year').be.equal(2014);
-        response.body.should.have.property('period').be.equal('1');
+    describe('with valid code', function () {
+      it('should show', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/enrollments/2014-1');
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.have.property('year').be.equal(2014);
+          response.body.should.have.property('period').be.equal('1');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
   });
 
@@ -245,132 +273,154 @@ describe('enrollment controller', function () {
       request.end(done);
     });
 
-    it('should raise error without token', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1');
-      request.send({'year' : 2015});
-      request.send({'period' : '2'});
-      request.expect(403);
-      request.end(done);
-    });
-
-    it('should raise error without changeEnrollment permission', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1');
-      request.set('csrf-token', 'userToken');
-      request.send({'year' : 2015});
-      request.send({'period' : '2'});
-      request.expect(403);
-      request.end(done);
-    });
-
-    it('should raise error with invalid code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2012-invalid');
-      request.set('csrf-token', 'adminToken');
-      request.send({'year' : 2015});
-      request.send({'period' : '2'});
-      request.expect(404);
-      request.end(done);
-    });
-
-    it('should raise error without year', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1');
-      request.set('csrf-token', 'adminToken');
-      request.send({'period' : '2'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('year').be.equal('required');
+    describe('without token', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1');
+        request.send({'year' : 2015});
+        request.send({'period' : '2'});
+        request.expect(403);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error without period', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1');
-      request.set('csrf-token', 'adminToken');
-      request.send({'year' : 2015});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('period').be.equal('required');
+    describe('without changeEnrollment permission', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'userToken');
+        request.send({'year' : 2015});
+        request.send({'period' : '2'});
+        request.expect(403);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error without year and period', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1');
-      request.set('csrf-token', 'adminToken');
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('year').be.equal('required');
-        response.body.should.have.property('period').be.equal('required');
+    describe('without valid code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2012-invalid');
+        request.set('csrf-token', 'adminToken');
+        request.send({'year' : 2015});
+        request.send({'period' : '2'});
+        request.expect(404);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error before enrollment cancellation period starts', function (done) {
-      var request, time;
+    describe('without year', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'adminToken');
+        request.send({'period' : '2'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('year').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
 
-      time = new Date('2014-02-01');
-      timekeeper.travel(time);
+    describe('without period', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'adminToken');
+        request.send({'year' : 2015});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('period').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
 
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1');
-      request.set('csrf-token', 'adminToken');
-      request.send({'year' : 2014});
-      request.send({'period' : '1'});
-      request.send({'status' : 'cancelled'});
-      request.expect(function() {
+    describe('without year and period', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'adminToken');
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('year').be.equal('required');
+          response.body.should.have.property('period').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
+
+    describe('before enrollment cancellation period starts', function () {
+      before(function () {
+        var time;
+        time = new Date('2014-02-01');
+        timekeeper.travel(time);
+      });
+
+      after(function () {
         timekeeper.travel(referenceDate);
       });
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('status').be.equal('outside of enrollment cancellation period');
 
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'adminToken');
+        request.send({'year' : 2014});
+        request.send({'period' : '1'});
+        request.send({'status' : 'cancelled'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('status').be.equal('outside of enrollment cancellation period');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error when enrollment cancellation period has already ended', function (done) {
-      var request, time;
+    describe('after enrollment cancellation period ends', function () {
+      before(function () {
+        var time;
+        time = new Date('2014-12-30');
+        timekeeper.travel(time);
+      });
 
-      time = new Date('2014-12-30');
-      timekeeper.travel(time);
-
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1');
-      request.set('csrf-token', 'adminToken');
-      request.send({'year' : 2014});
-      request.send({'period' : '1'});
-      request.send({'status' : 'cancelled'});
-      request.expect(function() {
+      after(function () {
         timekeeper.travel(referenceDate);
       });
-      request.expect(400);
-      request.expect(function (response) {
-        timekeeper.travel(referenceDate);
-        response.body.should.have.property('status').be.equal('outside of enrollment cancellation period');
+
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'adminToken');
+        request.send({'year' : 2014});
+        request.send({'period' : '1'});
+        request.send({'status' : 'cancelled'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('status').be.equal('outside of enrollment cancellation period');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should update', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1');
-      request.set('csrf-token', 'adminToken');
-      request.send({'year' : 2015});
-      request.send({'period' : '2'});
-      request.expect(200);
-      request.end(done);
+    describe('with valid credentials, year, period, after enrollment period started and before cancellation period ends', function () {
+      it('should update', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'adminToken');
+        request.send({'year' : 2015});
+        request.send({'period' : '2'});
+        request.expect(200);
+        request.end(done);
+      });
     });
 
     describe('with code taken', function () {
@@ -410,39 +460,47 @@ describe('enrollment controller', function () {
       request.end(done);
     });
 
-    it('should raise error without token', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/enrollments/2014-1');
-      request.expect(403);
-      request.end(done);
+    describe('without token', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/enrollments/2014-1');
+        request.expect(403);
+        request.end(done);
+      });
     });
 
-    it('should raise error without changeEnrollment permission', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/enrollments/2014-1');
-      request.set('csrf-token', 'userToken');
-      request.expect(403);
-      request.end(done);
+    describe('without changeEnrollment permission', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'userToken');
+        request.expect(403);
+        request.end(done);
+      });
     });
 
-    it('should raise error with 2012-invalid code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/enrollments/2012-invalid');
-      request.set('csrf-token', 'adminToken');
-      request.expect(404);
-      request.end(done);
+    describe('without valid code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/enrollments/2012-invalid');
+        request.set('csrf-token', 'adminToken');
+        request.expect(404);
+        request.end(done);
+      });
     });
 
-    it('should delete', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/enrollments/2014-1');
-      request.set('csrf-token', 'adminToken');
-      request.expect(204);
-      request.end(done);
+    describe('with valid credentials and code', function () {
+      it('should delete', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/enrollments/2014-1');
+        request.set('csrf-token', 'adminToken');
+        request.expect(204);
+        request.end(done);
+      });
     });
   });
 });

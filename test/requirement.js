@@ -14,7 +14,7 @@ describe('requirement controller', function () {
 
   before(Enrollment.remove.bind(Enrollment));
 
-  before(function(done) {
+  before(function (done) {
     timekeeper.travel(referenceDate);
     done();
   });
@@ -32,119 +32,138 @@ describe('requirement controller', function () {
   describe('create', function () {
     before(Requirement.remove.bind(Requirement));
 
-    it('should raise error without token', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments/2014-1/requirements');
-      request.send({'discipline' : 'MC102'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(403);
-      request.end(done);
-    });
-
-    it('should raise error without changeRequirement permission', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments/2014-1/requirements');
-      request.set('csrf-token', 'userToken');
-      request.send({'discipline' : 'MC102'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(403);
-      request.end(done);
-    });
-
-    it('should raise error without discipline', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments/2014-1/requirements');
-      request.set('csrf-token', 'adminToken');
-      request.send({'offering' : '2014-1-A'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('discipline').be.equal('required');
+    describe('without token', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(403);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error without offering', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments/2014-1/requirements');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC102'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('offering').be.equal('required');
+    describe('without changeRequirement permission', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'userToken');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(403);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error without discipline and offering', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments/2014-1/requirements');
-      request.set('csrf-token', 'adminToken');
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('discipline').be.equal('required');
-        response.body.should.have.property('offering').be.equal('required');
+    describe('without discipline', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'offering' : '2014-1-A'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('required');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error when offering not found', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments/2014-1/requirements');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-F'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('offering').be.equal('discipline offering not found');
+    describe('without offering', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC102'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('offering').be.equal('required');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error when discipline requirement is not fulfilled', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments/2014-1/requirements');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC302'});
-      request.send({'offering' : '2014-1-B'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('discipline').be.equal('discipline requirement not fulfilled');
+    describe('without discipline and offering', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('required');
+          response.body.should.have.property('offering').be.equal('required');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error when user was already approved on discipline', function(done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments/2014-1/requirements');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'CE738'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('discipline').be.equal('user was already approved on discipline');
+    describe('without valid offering', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-F'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('offering').be.equal('discipline offering not found');
+        });
+        request.end(done);
       });
-      request.end(done);
-    });
-    it('should create', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments/2014-1/requirements');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC102'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(201);
-      request.end(done);
     });
 
-    describe('with credit raise request', function () {
+    describe('without all discipline requirements', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC302'});
+        request.send({'offering' : '2014-1-B'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('discipline requirement not fulfilled');
+        });
+        request.end(done);
+      });
+    });
+
+    describe('with coursed discipline', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'CE738'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('user was already approved on discipline');
+        });
+        request.end(done);
+      });
+    });
+
+    describe('with valid credentials, discipline and offering', function () {
+      it('should create', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(201);
+        request.end(done);
+      });
+    });
+
+    describe('with exceeding credit limit', function () {
       before(Requirement.remove.bind(Requirement));
 
       before(function (done) {
@@ -157,7 +176,7 @@ describe('requirement controller', function () {
         request.end(done);
       });
 
-      it('should not have a credit raise request', function (done) {
+      before(function (done) {
         var request;
         request = supertest(app);
         request = request.get('/users/111111/enrollments/2014-1');
@@ -169,7 +188,7 @@ describe('requirement controller', function () {
         request.end(done);
       });
 
-      it('should create with a credit raise request', function (done) {
+      it('should create a credit raise request', function (done) {
         var request;
         request = supertest(app);
         request = request.post('/users/111111/enrollments/2014-1/requirements');
@@ -180,7 +199,7 @@ describe('requirement controller', function () {
         request.end(done);
       });
 
-      it('should have a credit raise request', function (done) {
+      after(function (done) {
         var request;
         request = supertest(app);
         request = request.get('/users/111111/enrollments/2014-1');
@@ -195,7 +214,7 @@ describe('requirement controller', function () {
       });
     });
 
-    describe('with discipline offering', function () {
+    describe('with time conflicting with another discipline', function () {
       before(Requirement.remove.bind(Requirement));
 
       before(function (done) {
@@ -208,7 +227,7 @@ describe('requirement controller', function () {
         request.end(done);
       });
 
-      it('should raise an error when there is a time conflict', function (done) {
+      it('should raise error', function (done) {
         var request;
         request = supertest(app);
         request = request.post('/users/111111/enrollments/2014-1/requirements');
@@ -232,8 +251,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'MC102'});
-          request.send({'offering': '2014-1-A'});
+          request.send({'discipline' : 'MC102'});
+          request.send({'offering' : '2014-1-A'});
           request.end(done);
         });
 
@@ -242,8 +261,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'F 128'});
-          request.send({'offering': '2014-1-A'});
+          request.send({'discipline' : 'F 128'});
+          request.send({'offering' : '2014-1-A'});
           request.end(done);
         });
 
@@ -252,8 +271,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'MC886'});
-          request.send({'offering': '2014-1-A'});
+          request.send({'discipline' : 'MC886'});
+          request.send({'offering' : '2014-1-A'});
           request.end(done);
         });
 
@@ -262,8 +281,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'MC959'});
-          request.send({'offering': '2014-1-A'});
+          request.send({'discipline' : 'MC959'});
+          request.send({'offering' : '2014-1-A'});
           request.end(done);
         });
 
@@ -272,8 +291,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'LA122'});
-          request.send({'offering': '2014-1-A'});
+          request.send({'discipline' : 'LA122'});
+          request.send({'offering' : '2014-1-A'});
           request.end(done);
         });
 
@@ -282,8 +301,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'BD190'});
-          request.send({'offering': '2014-1-A'});
+          request.send({'discipline' : 'BD190'});
+          request.send({'offering' : '2014-1-A'});
           request.end(done);
         });
 
@@ -368,8 +387,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'MC102'});
-          request.send({'offering': '2014-1-B'});
+          request.send({'discipline' : 'MC102'});
+          request.send({'offering' : '2014-1-B'});
           request.end(done);
         });
 
@@ -378,8 +397,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'F 128'});
-          request.send({'offering': '2014-1-B'});
+          request.send({'discipline' : 'F 128'});
+          request.send({'offering' : '2014-1-B'});
           request.end(done);
         });
 
@@ -388,8 +407,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'MC886'});
-          request.send({'offering': '2014-1-B'});
+          request.send({'discipline' : 'MC886'});
+          request.send({'offering' : '2014-1-B'});
           request.end(done);
         });
 
@@ -398,8 +417,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'MC959'});
-          request.send({'offering': '2014-1-B'});
+          request.send({'discipline' : 'MC959'});
+          request.send({'offering' : '2014-1-B'});
           request.end(done);
         });
 
@@ -408,8 +427,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'LA122'});
-          request.send({'offering': '2014-1-B'});
+          request.send({'discipline' : 'LA122'});
+          request.send({'offering' : '2014-1-B'});
           request.end(done);
         });
 
@@ -418,8 +437,8 @@ describe('requirement controller', function () {
           request = supertest(app);
           request = request.post('/users/111111/enrollments/2014-1/requirements');
           request.set('csrf-token', 'adminToken');
-          request.send({'discipline': 'BD190'});
-          request.send({'offering': '2014-1-B'});
+          request.send({'discipline' : 'BD190'});
+          request.send({'offering' : '2014-1-B'});
           request.end(done);
         });
 
@@ -526,41 +545,43 @@ describe('requirement controller', function () {
   describe('list', function () {
     before(Requirement.remove.bind(Requirement));
 
-    before(function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/enrollments/2014-1/requirements');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC102'});
-      request.send({'offering' : '2014-1-A'});
-      request.end(done);
-    });
+    describe('with one in database', function () {
+      before(function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.end(done);
+      });
 
-    it('should list', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/enrollments/2014-1/requirements');
-      request.expect(200);
-      request.expect(function (response) {
-        response.body.should.be.instanceOf(Array).with.lengthOf(1);
-        response.body.every(function (requirement) {
-          requirement.should.have.property('discipline');
-          requirement.should.have.property('offering');
+      it('should list 1 in first page', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/enrollments/2014-1/requirements');
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.be.instanceOf(Array).with.lengthOf(1);
+          response.body.every(function (requirement) {
+            requirement.should.have.property('discipline');
+            requirement.should.have.property('offering');
+          });
         });
+        request.end(done);
       });
-      request.end(done);
-    });
 
-    it('should return empty in second page', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/enrollments/2014-1/requirements');
-      request.send({'page' : 1});
-      request.expect(200);
-      request.expect(function (response) {
-        response.body.should.be.instanceOf(Array).with.lengthOf(0);
+      it('should return empty in second page', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/enrollments/2014-1/requirements');
+        request.send({'page' : 1});
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.be.instanceOf(Array).with.lengthOf(0);
+        });
+        request.end(done);
       });
-      request.end(done);
     });
   });
 
@@ -577,24 +598,28 @@ describe('requirement controller', function () {
       request.end(done);
     });
 
-    it('should raise error with invalid code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/enrollments/2014-1/requirements/invalid');
-      request.expect(404);
-      request.end(done);
+    describe('without valid code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/enrollments/2014-1/requirements/invalid');
+        request.expect(404);
+        request.end(done);
+      });
     });
 
-    it('should show', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.expect(200);
-      request.expect(function (response) {
-        response.body.should.have.property('discipline').be.equal('MC102');
-        response.body.should.have.property('offering').be.equal('2014-1-A');
+    describe('with valid code', function () {
+      it('should show', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('MC102');
+          response.body.should.have.property('offering').be.equal('2014-1-A');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
   });
 
@@ -611,132 +636,154 @@ describe('requirement controller', function () {
       request.end(done);
     });
 
-    it('should raise error without token', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-B'});
-      request.expect(403);
-      request.end(done);
-    });
-
-    it('should raise error without changeRequirement permission', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.set('csrf-token', 'userToken');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-B'});
-      request.expect(403);
-      request.end(done);
-    });
-
-    it('should raise error with invalid code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1/requirements/invalid');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-B'});
-      request.expect(404);
-      request.end(done);
-    });
-
-    it('should raise error without discipline', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.send({'offering' : '2014-1-B'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('discipline').be.equal('required');
+    describe('without token', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-B'});
+        request.expect(403);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error without offering', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC202'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('offering').be.equal('required');
+    describe('without changeRequirement permission', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.set('csrf-token', 'userToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-B'});
+        request.expect(403);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error without discipline and offering', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('discipline').be.equal('required');
-        response.body.should.have.property('offering').be.equal('required');
+    describe('without valid code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1/requirements/invalid');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-B'});
+        request.expect(404);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error before enrollment cancellation period starts', function (done) {
-      var request, time;
+    describe('without discipline', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.send({'offering' : '2014-1-B'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
 
-      time = new Date('2014-02-01');
-      timekeeper.travel(time);
+    describe('without offering', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('offering').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
 
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-B'});
-      request.send({'status' : 'quit'});
-      request.expect(function() {
+    describe('without discipline and offering', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('required');
+          response.body.should.have.property('offering').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
+
+    describe('before enrollment cancellation period starts', function () {
+      before(function () {
+        var time;
+        time = new Date('2014-02-01');
+        timekeeper.travel(time);
+      });
+
+      after(function () {
         timekeeper.travel(referenceDate);
       });
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('status').be.equal('outside of discipline quit period');
 
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-B'});
+        request.send({'status' : 'quit'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('status').be.equal('outside of discipline quit period');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error when enrollment cancellation period has already ended', function (done) {
-      var request, time;
+    describe('after enrollment cancellation period ends', function () {
+      before(function () {
+        var time;
+        time = new Date('2014-12-30');
+        timekeeper.travel(time);
+      });
 
-      time = new Date('2014-12-30');
-      timekeeper.travel(time);
-
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-B'});
-      request.send({'status' : 'quit'});
-      request.expect(function() {
+      after(function () {
         timekeeper.travel(referenceDate);
       });
-      request.expect(400);
-      request.expect(function (response) {
-        timekeeper.travel(referenceDate);
-        response.body.should.have.property('status').be.equal('outside of discipline quit period');
+
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-B'});
+        request.send({'status' : 'quit'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('status').be.equal('outside of discipline quit period');
+        });
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should update', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-B'});
-      request.expect(200);
-      request.end(done);
+    describe('with valid credentials, discipline, offering, after enrollment period started and before cancellation period ends', function () {
+      it('should update', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-B'});
+        request.expect(200);
+        request.end(done);
+      });
     });
 
     describe('with code taken', function () {
@@ -776,39 +823,47 @@ describe('requirement controller', function () {
       request.end(done);
     });
 
-    it('should raise error without token', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.expect(403);
-      request.end(done);
+    describe('without token', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.expect(403);
+        request.end(done);
+      });
     });
 
-    it('should raise error without changeRequirement permission', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.set('csrf-token', 'userToken');
-      request.expect(403);
-      request.end(done);
+    describe('without changeRequirement permission', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.set('csrf-token', 'userToken');
+        request.expect(403);
+        request.end(done);
+      });
     });
 
-    it('should raise error with invalid code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/enrollments/2014-1/requirements/invalid');
-      request.set('csrf-token', 'adminToken');
-      request.expect(404);
-      request.end(done);
+    describe('without valid code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/enrollments/2014-1/requirements/invalid');
+        request.set('csrf-token', 'adminToken');
+        request.expect(404);
+        request.end(done);
+      });
     });
 
-    it('should delete', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.expect(204);
-      request.end(done);
+    describe('with valid credentials and code', function () {
+      it('should delete', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.expect(204);
+        request.end(done);
+      });
     });
   });
 });
