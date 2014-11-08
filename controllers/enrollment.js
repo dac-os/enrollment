@@ -252,7 +252,7 @@ router.param('enrollment', function findEnrollment(request, response, next, id) 
   var query, code;
   code = id.split('-');
   query = Enrollment.findOne();
-  query.where('year').equals(code[0]);
+  query.where('year').equals(isNaN(code[0]) ? 0 : code[0]);
   query.where('period').equals(code[1]);
   query.where('user').equals(request.params.user);
   query.exec(function foundEnrollment(error, enrollment) {
