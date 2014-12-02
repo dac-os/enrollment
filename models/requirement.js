@@ -103,7 +103,7 @@ schema.pre('save', function setPriorityScore(next) {
       courses.requirement(currentHistory.year, currentHistory.course + '-' + currentHistory.modality, block.code, this.discipline, function (error, courseRequirement) {
         if (courseRequirement) {
           var currentDate, currentSemester, offeringReservations, userSemester;
-          
+
           currentDate = new Date();
 
           if (currentDate.getMonth() < 6) {
@@ -344,7 +344,7 @@ schema.path('offering').validate(function validateIfRequirementHasTimeConflict(v
     async.every(data.requirements, function (requirement, next) {
       courses.offering(requirement.discipline, requirement.offering, function foundDisciplineOffering(error, offeringConflict) {
         var conflict = data.offering.schedules.some(function (schedule) {
-          return offeringConflict.schedules.some(function (otherSchedule) {
+          return !!offeringConflict && offeringConflict.schedules.some(function (otherSchedule) {
             return (schedule.weekday === otherSchedule.weekday && schedule.hour === otherSchedule.hour);
           });
         });
