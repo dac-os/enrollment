@@ -24,6 +24,10 @@ schema = new Schema({
     'type'     : String,
     'required' : true
   },
+  'bid'        : {
+    'type'     : Number,
+    'required' : true
+  },
   'status'     : {
     'type'    : String,
     'enum'    : [ 'new', 'approved', 'rejected', 'quit' ],
@@ -63,6 +67,7 @@ schema.plugin(jsonSelect, {
   'enrollment' : 1,
   'discipline' : 1,
   'offering'   : 1,
+  'bid'        : 1,
   'status'     : 1,
   'comment'    : 1,
   'priority'   : 1,
@@ -354,5 +359,35 @@ schema.path('offering').validate(function validateIfRequirementHasTimeConflict(v
     }.bind(this), next);
   }.bind(this)], next);
 }, 'discipline with time conflict');
+
+schema.path('bid').validate(function validateIfWeightThereAreAvailablePoints(value, next) {
+  'use strict';
+
+  async.waterfall([function (next) {
+    this.populate('enrollment');
+    this.populate(next);
+  }.bind(this), function (_, next) {
+    var query;
+
+    query = this.model('Requirement').find();
+    query.where('enrollment').equals(this.enrollment._id);
+    query.where('_id').ne(this._id);
+    query.where('discipline').ne(this.discipline);
+    query.exec(next);
+  }.bind(this), function (requirements, next) {
+    // sum the actual requirement together with all other requirements
+    requirements.push(this);
+
+    async.reduce(requirements, 0, function (sum, disciplineRequirement, next) {
+      next(false, disciplineRequirement.bid + sum);
+    }.bind(this), function (error, totalBid) {
+      if (totalBid > nconf.get('MAX_BID_SUM')) {
+        return next(false);
+      }
+
+      return next();
+    }.bind(this));
+  }.bind(this)], next);
+}, 'there is no more points available for the bids');
 
 module.exports = mongoose.model('Requirement', schema);

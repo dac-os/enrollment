@@ -21,12 +21,14 @@ Enrollment = require('../models/enrollment');
  *
  * @apiParam {String} discipline Requirement discipline.
  * @apiParam {String} offering Requirement offering.
+ * @apiParam {Number} bid Requirement bid.
  *
  * @apiErrorExample
  * HTTP/1.1 400 Bad Request
  * {
  *   "discipline": "required",
- *   "offering": "required"
+ *   "offering": "required",
+ *   "bid": "required"
  * }
  *
  * @apiErrorExample
@@ -51,7 +53,8 @@ router
   requirement = new Requirement({
     'enrollment' : request.enrollment,
     'discipline' : request.param('discipline'),
-    'offering'   : request.param('offering')
+    'offering'   : request.param('offering'),
+    'bid'        : request.param('bid')
   });
   return requirement.save(function createdRequirement(error) {
     if (error) {
@@ -76,6 +79,7 @@ router
  *
  * @apiSuccess (requirement) {String} discipline Requirement discipline.
  * @apiSuccess (requirement) {String} offering Requirement offering.
+ * @apiSuccess (requirement) {Number} bid Requirement bid.
  * @apiSuccess (requirement) {String} status Requirement status.
  * @apiSuccess (requirement) {String} comment Requirement comment.
  * @apiSuccess (requirement) {String} justification Requirement justification.
@@ -126,6 +130,7 @@ router
  *
  * @apiSuccess {String} discipline Requirement discipline.
  * @apiSuccess {String} offering Requirement offering.
+ * @apiSuccess (requirement) {Number} bid Requirement bid.
  * @apiSuccess {String} status Requirement status.
  * @apiSuccess {String} comment Requirement comment.
  * @apiSuccess {String} justification Requirement justification.
@@ -172,6 +177,7 @@ router
  *
  * @apiParam {String} discipline Requirement discipline.
  * @apiParam {String} offering Requirement offering.
+ * @apiParam {Number} bid Requirement bid.
  * @apiParam {String} status Requirement status.
  * @apiParam {String} comment Requirement comment.
  *
@@ -208,6 +214,7 @@ router
   requirement = request.requirement;
   requirement.discipline = request.param('discipline');
   requirement.offering = request.param('offering');
+  requirement.bid = request.param('bid');
 
   if (request.param('status')) {
     requirement.status = request.param('status');

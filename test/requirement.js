@@ -64,6 +64,7 @@ describe('requirement controller', function () {
         request = request.post('/users/111111/enrollments/2014-1/requirements');
         request.set('csrf-token', 'adminToken');
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.expect(400);
         request.expect(function (response) {
           response.body.should.have.property('discipline').be.equal('required');
@@ -79,6 +80,7 @@ describe('requirement controller', function () {
         request = request.post('/users/111111/enrollments/2014-1/requirements');
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC102'});
+        request.send({'bid' : '1'});
         request.expect(400);
         request.expect(function (response) {
           response.body.should.have.property('offering').be.equal('required');
@@ -87,7 +89,23 @@ describe('requirement controller', function () {
       });
     });
 
-    describe('without discipline and offering', function () {
+    describe('without bid', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'offering' : '2014-1-A'});
+        request.send({'discipline' : 'MC102'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('bid').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
+
+    describe('without discipline, offering and bid', function () {
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
@@ -97,6 +115,7 @@ describe('requirement controller', function () {
         request.expect(function (response) {
           response.body.should.have.property('discipline').be.equal('required');
           response.body.should.have.property('offering').be.equal('required');
+          response.body.should.have.property('bid').be.equal('required');
         });
         request.end(done);
       });
@@ -110,6 +129,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC202'});
         request.send({'offering' : '2014-1-F'});
+        request.send({'bid' : '1'});
         request.expect(400);
         request.expect(function (response) {
           response.body.should.have.property('offering').be.equal('discipline offering not found');
@@ -126,6 +146,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC302'});
         request.send({'offering' : '2014-1-B'});
+        request.send({'bid' : '1'});
         request.expect(400);
         request.expect(function (response) {
           response.body.should.have.property('discipline').be.equal('discipline requirement not fulfilled');
@@ -142,6 +163,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'CE738'});
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.expect(400);
         request.expect(function (response) {
           response.body.should.have.property('discipline').be.equal('user was already approved on discipline');
@@ -150,7 +172,24 @@ describe('requirement controller', function () {
       });
     });
 
-    describe('with valid credentials, discipline and offering', function () {
+    describe('with exceded number of bid points', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/enrollments/2014-1/requirements');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : 31});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('bid').be.equal('there is no more points available for the bids');
+        });
+        request.end(done);
+      });
+    });
+
+    describe('with valid credentials, discipline, offering and bid', function () {
       it('should create', function (done) {
         var request;
         request = supertest(app);
@@ -158,6 +197,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC102'});
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.expect(201);
         request.end(done);
       });
@@ -173,6 +213,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC102'});
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.end(done);
       });
 
@@ -195,6 +236,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MA111'});
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.expect(201);
         request.end(done);
       });
@@ -224,6 +266,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MA111'});
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.end(done);
       });
 
@@ -234,6 +277,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MA141'});
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.expect(400);
         request.expect(function (response) {
           response.body.should.have.property('offering').be.equal('discipline with time conflict');
@@ -253,6 +297,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'MC102'});
           request.send({'offering' : '2014-1-A'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -263,6 +308,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'F 128'});
           request.send({'offering' : '2014-1-A'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -273,6 +319,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'MC886'});
           request.send({'offering' : '2014-1-A'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -283,6 +330,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'MC959'});
           request.send({'offering' : '2014-1-A'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -293,6 +341,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'LA122'});
           request.send({'offering' : '2014-1-A'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -303,6 +352,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'BD190'});
           request.send({'offering' : '2014-1-A'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -389,6 +439,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'MC102'});
           request.send({'offering' : '2014-1-B'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -399,6 +450,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'F 128'});
           request.send({'offering' : '2014-1-B'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -409,6 +461,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'MC886'});
           request.send({'offering' : '2014-1-B'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -419,6 +472,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'MC959'});
           request.send({'offering' : '2014-1-B'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -429,6 +483,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'LA122'});
           request.send({'offering' : '2014-1-B'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -439,6 +494,7 @@ describe('requirement controller', function () {
           request.set('csrf-token', 'adminToken');
           request.send({'discipline' : 'BD190'});
           request.send({'offering' : '2014-1-B'});
+          request.send({'bid' : '1'});
           request.end(done);
         });
 
@@ -526,6 +582,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC102'});
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.end(done);
       });
 
@@ -536,6 +593,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC102'});
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.expect(409);
         request.end(done);
       });
@@ -553,6 +611,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC102'});
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.end(done);
       });
 
@@ -566,6 +625,7 @@ describe('requirement controller', function () {
           response.body.every(function (requirement) {
             requirement.should.have.property('discipline');
             requirement.should.have.property('offering');
+            requirement.should.have.property('bid');
           });
         });
         request.end(done);
@@ -595,6 +655,7 @@ describe('requirement controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'discipline' : 'MC102'});
       request.send({'offering' : '2014-1-A'});
+      request.send({'bid' : '1'});
       request.end(done);
     });
 
@@ -617,6 +678,7 @@ describe('requirement controller', function () {
         request.expect(function (response) {
           response.body.should.have.property('discipline').be.equal('MC102');
           response.body.should.have.property('offering').be.equal('2014-1-A');
+          response.body.should.have.property('bid').be.equal(1);
         });
         request.end(done);
       });
@@ -633,6 +695,7 @@ describe('requirement controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'discipline' : 'MC102'});
       request.send({'offering' : '2014-1-A'});
+      request.send({'bid' : '1'});
       request.end(done);
     });
 
@@ -643,6 +706,7 @@ describe('requirement controller', function () {
         request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
         request.send({'discipline' : 'MC202'});
         request.send({'offering' : '2014-1-B'});
+        request.send({'bid' : '1'});
         request.expect(403);
         request.end(done);
       });
@@ -656,6 +720,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'userToken');
         request.send({'discipline' : 'MC202'});
         request.send({'offering' : '2014-1-B'});
+        request.send({'bid' : '1'});
         request.expect(403);
         request.end(done);
       });
@@ -669,6 +734,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC202'});
         request.send({'offering' : '2014-1-B'});
+        request.send({'bid' : '1'});
         request.expect(404);
         request.end(done);
       });
@@ -681,6 +747,7 @@ describe('requirement controller', function () {
         request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
         request.set('csrf-token', 'adminToken');
         request.send({'offering' : '2014-1-B'});
+        request.send({'bid' : '1'});
         request.expect(400);
         request.expect(function (response) {
           response.body.should.have.property('discipline').be.equal('required');
@@ -696,6 +763,7 @@ describe('requirement controller', function () {
         request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC202'});
+        request.send({'bid' : '1'});
         request.expect(400);
         request.expect(function (response) {
           response.body.should.have.property('offering').be.equal('required');
@@ -704,7 +772,23 @@ describe('requirement controller', function () {
       });
     });
 
-    describe('without discipline and offering', function () {
+    describe('without bid', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/enrollments/2014-1/requirements/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-B'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('bid').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
+
+    describe('without discipline, offering and bid', function () {
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
@@ -714,6 +798,7 @@ describe('requirement controller', function () {
         request.expect(function (response) {
           response.body.should.have.property('discipline').be.equal('required');
           response.body.should.have.property('offering').be.equal('required');
+          response.body.should.have.property('bid').be.equal('required');
         });
         request.end(done);
       });
@@ -737,6 +822,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC202'});
         request.send({'offering' : '2014-1-B'});
+        request.send({'bid' : '1'});
         request.send({'status' : 'quit'});
         request.expect(400);
         request.expect(function (response) {
@@ -764,6 +850,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC202'});
         request.send({'offering' : '2014-1-B'});
+        request.send({'bid' : '1'});
         request.send({'status' : 'quit'});
         request.expect(400);
         request.expect(function (response) {
@@ -781,6 +868,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC202'});
         request.send({'offering' : '2014-1-B'});
+        request.send({'bid' : '1'});
         request.expect(200);
         request.end(done);
       });
@@ -794,6 +882,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC102'});
         request.send({'offering' : '2014-1-A'});
+        request.send({'bid' : '1'});
         request.end(done);
       });
 
@@ -804,6 +893,7 @@ describe('requirement controller', function () {
         request.set('csrf-token', 'adminToken');
         request.send({'discipline' : 'MC202'});
         request.send({'offering' : '2014-1-B'});
+        request.send({'bid' : '1'});
         request.expect(409);
         request.end(done);
       });
@@ -820,6 +910,7 @@ describe('requirement controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'discipline' : 'MC102'});
       request.send({'offering' : '2014-1-A'});
+      request.send({'bid' : '1'});
       request.end(done);
     });
 

@@ -2,6 +2,7 @@
   "MONGOHQ_URL"    : "mongodb://localhost/dacos-enrollment",
   "PAGE_SIZE"      : 20,
   "PORT"           : 8082,
+  "MAX_BID_SUM"    : 30,
   "HISTORY_URI"    : "http://localhost:8081",
   "COURSES_URI"    : "http://localhost:8083",
   "CALENDAR_URI"   : "http://localhost:8084",
