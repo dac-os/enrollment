@@ -381,7 +381,7 @@ schema.path('bid').validate(function validateIfWeightThereAreAvailablePoints(val
     async.reduce(requirements, 0, function (sum, disciplineRequirement, next) {
       next(false, disciplineRequirement.bid + sum);
     }.bind(this), function (error, totalBid) {
-      if (totalBid > nconf.get('MAX_BID_SUM')) {
+      if (totalBid > 30) {
         return next(false);
       }
 
